@@ -1,3 +1,42 @@
+## Spring
 spring:
   application:
-    name: API-Server
+    name: WEBA11Y-Server
+  config:
+    activate:
+      on-profile: default
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MariaDBDialect
+    show-sql: true
+    open-in-view: false
+  sql:
+    init:
+      mode: always
+      platform: mariadb
+
+## Logging
+logging:
+  level:
+    org:
+      springframework:
+        cache: debug
+      hibernate:
+        sql: debug
+        type: trace
+
+### JWT
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  access-token-expiration: 600000
+  refresh-token-expiration: 1209600000

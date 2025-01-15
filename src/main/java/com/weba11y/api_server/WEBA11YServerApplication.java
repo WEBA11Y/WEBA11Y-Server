@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ApiServerApplication {
+public class WEBA11YServerApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ApiServerApplication.class, args);
+		SpringApplication.run(WEBA11YServerApplication.class, args);
 	}
 
 }
