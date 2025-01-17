@@ -24,6 +24,12 @@ spring:
     init:
       mode: always
       platform: mariadb
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 6000
+      database: 8
 
 ## Logging
 logging:
@@ -40,3 +46,7 @@ jwt:
   secret: ${JWT_SECRET_KEY}
   access-token-expiration: 600000
   refresh-token-expiration: 1209600000
+
+### Client
+client:
+  url: ${CLIENT_URL}
