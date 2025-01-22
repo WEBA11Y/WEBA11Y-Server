@@ -1,5 +1,6 @@
 package com.weba11y.server.domain;
 
+import com.weba11y.server.domain.common.BaseEntity;
 import com.weba11y.server.domain.enums.MemberStatus;
 import com.weba11y.server.domain.enums.Role;
 import jakarta.persistence.*;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public class Member {
+public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,15 +45,6 @@ public class Member {
     @Column
     private LocalDate birthday;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createDate;
-
-    @Column(nullable = false)
-    private LocalDateTime updateDate;
-
-    @Column // 삭제 날짜는 null 가능
-    private LocalDateTime deleteDate;
-
     @Builder
     public Member(String username, String password, String name, String email, String phoneNum, LocalDate birthday) {
         this.username = username;
@@ -63,30 +55,22 @@ public class Member {
         this.birthday = birthday;
         this.role = Role.ROLE_USER; // 기본 역할
         this.status = MemberStatus.ACTIVE; // 기본 상태
-        this.createDate = LocalDateTime.now();
-        this.updateDate = LocalDateTime.now();
-        this.deleteDate = null;
     }
 
     // 업데이트 메서드
-    public void update(String name, String email, String phoneNum, LocalDate birthday) {
-        this.name = name;
+    public void update(String email, String phoneNum) {
         this.email = email;
         this.phoneNum = phoneNum;
-        this.birthday = birthday;
-        this.updateDate = LocalDateTime.now();
     }
 
     // 회원 비활성화
     public void deactivate() {
         this.status = MemberStatus.DEACTIVATED;
-        this.updateDate = LocalDateTime.now();
     }
 
     // 회원 비활성화 및 탈퇴
     public void delete() {
         this.status = MemberStatus.DEACTIVATED;
-        this.updateDate = LocalDateTime.now();
-        this.deleteDate = LocalDateTime.now();
+        onDelete();
     }
 }
