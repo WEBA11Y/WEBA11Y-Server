@@ -2,10 +2,7 @@ package com.weba11y.server.service.implement;
 
 import com.weba11y.server.domain.Member;
 import com.weba11y.server.domain.Token;
-import com.weba11y.server.dto.member.JoinDto;
-import com.weba11y.server.dto.member.JoinResultDto;
-import com.weba11y.server.dto.member.LoginDto;
-import com.weba11y.server.dto.member.LoginResultDto;
+import com.weba11y.server.dto.member.*;
 import com.weba11y.server.exception.custom.DuplicateFieldException;
 import com.weba11y.server.repository.MemberRepository;
 import com.weba11y.server.service.AuthService;
@@ -84,6 +81,42 @@ public class AuthServiceImpl implements AuthService {
                 .username(findMember.getUsername())
                 .accessToken(token.getAccess_token())
                 .build();
+    }
+
+    @Override
+    public MemberDto retrieveMember(Long memberId) {
+        return MemberDto.of(getMemberById(memberId));
+    }
+
+    @Override
+    @Transactional
+    public MemberDto updateMember(Long memberId, UpdateMemberDto updateMemberDto) {
+        Member member = getMemberById(memberId);
+        if (isExistsEmail(updateMemberDto.getEmail())) {
+            throw new DuplicateFieldException("이미 사용 중인 이메일입니다.");
+        }
+        if (isExistsPhoneNum(updateMemberDto.getPhoneNum())) {
+            throw new DuplicateFieldException("이미 사용 중인 전화번호입니다.");
+        }
+        member.update(updateMemberDto.getEmail(), updateMemberDto.getPhoneNum());
+        return MemberDto.of(member);
+    }
+
+    @Override
+    @Transactional
+    public String deleteMember(Long memberId) {
+        Member member = getMemberById(memberId);
+        try {
+            member.delete();
+            return "회원 탈퇴 성공";
+        } catch (Exception e) {
+            return "회원 탈퇴 실패";
+        }
+    }
+
+    private Member getMemberById(Long memberId) {
+        return repository.findById(memberId).orElseThrow(()
+                -> new NoSuchElementException("회원 정보가 존재하지 않습니다."));
     }
 
     private Member getMemberByUsername(String username) {
