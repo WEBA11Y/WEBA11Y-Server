@@ -1,7 +1,9 @@
 package com.weba11y.server.dto.member;
 
+import com.weba11y.server.domain.Member;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 
@@ -33,5 +35,16 @@ public class JoinDto {
 
     @NotNull(message = "생일은 필수 입력 사항입니다.")
     private LocalDate birthday;
+
+    public Member toEntity(PasswordEncoder passwordEncoder) {
+        return Member.builder()
+                .username(this.username)
+                .password(passwordEncoder.encode(this.password)) // 암호화 된 비밀번호
+                .name(this.name)
+                .email(this.email)
+                .phoneNum(this.phoneNum)
+                .birthday(this.birthday)
+                .build();
+    }
 }
 

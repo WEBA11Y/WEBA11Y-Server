@@ -45,14 +45,9 @@ public class AuthServiceImpl implements AuthService {
     public JoinResultDto join(JoinDto joinDto) {
         // Unique 값 검사
         validateUniqueMemberInfo(joinDto);
-        Member newMember = Member.builder()
-                .username(joinDto.getUsername())
-                .password(encodingPassword(joinDto.getPassword())) // 암호화 된 비밀번호
-                .name(joinDto.getName())
-                .email(joinDto.getEmail())
-                .phoneNum(joinDto.getPhoneNum())
-                .birthday(joinDto.getBirthday())
-                .build();
+
+        Member newMember = joinDto.toEntity(passwordEncoder);
+
         try {
             Member saveMember = repository.save(newMember);
             return JoinResultDto.builder()
@@ -84,14 +79,15 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public MemberDto retrieveMember(Long memberId) {
-        return MemberDto.of(getMemberById(memberId));
+    public Member retrieveMember(Long memberId) {
+        return repository.findById(memberId).orElseThrow(()
+                -> new NoSuchElementException("회원 정보가 존재하지 않습니다."));
     }
 
     @Override
     @Transactional
     public MemberDto updateMember(Long memberId, UpdateMemberDto updateMemberDto) {
-        Member member = getMemberById(memberId);
+        Member member = retrieveMember(memberId);
         if (isExistsEmail(updateMemberDto.getEmail())) {
             throw new DuplicateFieldException("이미 사용 중인 이메일입니다.");
         }
@@ -105,7 +101,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public String deleteMember(Long memberId) {
-        Member member = getMemberById(memberId);
+        Member member = retrieveMember(memberId);
         try {
             member.delete();
             return "회원 탈퇴 성공";
@@ -114,10 +110,6 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private Member getMemberById(Long memberId) {
-        return repository.findById(memberId).orElseThrow(()
-                -> new NoSuchElementException("회원 정보가 존재하지 않습니다."));
-    }
 
     private Member getMemberByUsername(String username) {
         return repository.findByUsername(username)
@@ -144,10 +136,6 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public boolean isExistsPhoneNum(String phoneNum) {
         return repository.existsByPhoneNum(phoneNum);
-    }
-
-    private String encodingPassword(String rawPassword) {
-        return passwordEncoder.encode(rawPassword);
     }
 
     // 비밀번호

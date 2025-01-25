@@ -36,8 +36,7 @@ public class AuthController {
     @GetMapping("/api/v1/member")
     public ResponseEntity<MemberDto> getMember(Principal principal) {
         Long memberId = getMemberId(principal);
-        System.out.println(memberId);
-        return ResponseEntity.ok().body(authService.retrieveMember(memberId));
+        return ResponseEntity.ok().body(authService.retrieveMember(memberId).toDto());
     }
 
     @PutMapping("/api/v1/member")

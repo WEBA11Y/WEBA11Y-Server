@@ -1,5 +1,6 @@
 package com.weba11y.server.service;
 
+import com.weba11y.server.domain.Member;
 import com.weba11y.server.dto.member.*;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -14,7 +15,7 @@ public interface AuthService {
 
     boolean isExistsPhoneNum(String username);
 
-    MemberDto retrieveMember(Long memberId);
+    Member retrieveMember(Long memberId);
 
     MemberDto updateMember(Long memberId, UpdateMemberDto updateMemberDto);
 

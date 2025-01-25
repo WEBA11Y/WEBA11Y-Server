@@ -3,11 +3,11 @@ package com.weba11y.server.domain;
 import com.weba11y.server.domain.common.BaseEntity;
 import com.weba11y.server.domain.enums.MemberStatus;
 import com.weba11y.server.domain.enums.Role;
+import com.weba11y.server.dto.member.MemberDto;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -72,5 +72,9 @@ public class Member extends BaseEntity {
     public void delete() {
         this.status = MemberStatus.DEACTIVATED;
         onDelete();
+    }
+
+    public MemberDto toDto() {
+        return MemberDto.of(this);
     }
 }
