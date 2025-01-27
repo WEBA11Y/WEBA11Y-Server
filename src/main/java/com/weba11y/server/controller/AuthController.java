@@ -6,6 +6,8 @@ import com.weba11y.server.dto.member.LoginDto;
 import com.weba11y.server.dto.member.MemberDto;
 import com.weba11y.server.dto.member.UpdateMemberDto;
 import com.weba11y.server.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,28 +20,33 @@ import java.security.Principal;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name="회원 및 인증 API", description = "회원 관리 및 인증 관련 API")
 public class AuthController {
 
     private final AuthService authService;
 
     @PostMapping("/api/v1/login")
+    @Operation(summary = "로그인", description = "로그인 성공시 인증 토큰을 발급합니다.")
     public ResponseEntity<?> memberLogin(@RequestBody @Valid LoginDto loginDto,
                                          HttpServletResponse res) {
         return ResponseEntity.ok().body(authService.login(loginDto, res));
     }
 
     @PostMapping("/api/v1/join")
+    @Operation(summary = "회원가입", description = "입력한 회원 정보를 등록합니다.")
     public ResponseEntity<?> memberJoin(@RequestBody @Valid JoinDto joinDto) {
         return ResponseEntity.ok().body(authService.join(joinDto));
     }
 
     @GetMapping("/api/v1/member")
+    @Operation(summary = "회원 정보 조회", description = "인증 토큰으로 회원 정보를 가져옵니다.")
     public ResponseEntity<MemberDto> getMember(Principal principal) {
         Long memberId = getMemberId(principal);
         return ResponseEntity.ok().body(authService.retrieveMember(memberId).toDto());
     }
 
     @PutMapping("/api/v1/member")
+    @Operation(summary = "회원 정보 수정", description = "수정 가능한 회원 정보를 수정합니다.")
     public ResponseEntity<?> updateMember(@RequestBody @Valid UpdateMemberDto memberDto,
                                           Principal principal) {
         Long memberId = getMemberId(principal);
@@ -47,6 +54,7 @@ public class AuthController {
     }
 
     @DeleteMapping("/api/v1/member")
+    @Operation(summary = "회원 탈퇴", description = "회원을 비활성화 하고 30일 이후에 영구적으로 삭제합니다.")
     public ResponseEntity<?> deleteMember(Principal principal){
         Long memberId = getMemberId(principal);
         return ResponseEntity.ok().body(authService.deleteMember(memberId));
@@ -54,16 +62,19 @@ public class AuthController {
 
 
     @GetMapping("/api/v1/join/check-username")
+    @Operation(summary = "아이디 중복 조회", description = "중복된 아이디가 있는지 확인합니다.")
     public ResponseEntity<Boolean> checkUsernameExists(@RequestBody @Valid String username) {
         return ResponseEntity.ok().body(authService.isExistsUsername(username));
     }
 
     @GetMapping("/api/v1/join/check-email")
+    @Operation(summary = "이메일 중복 조회", description = "중복된 이메일이 있는지 확인합니다.")
     public ResponseEntity<Boolean> checkEmailExists(@RequestBody @Valid String email) {
         return ResponseEntity.ok().body(authService.isExistsEmail(email));
     }
 
     @GetMapping("/api/v1/join/check-phoneNum")
+    @Operation(summary = "전화번호 중복 조회", description = "중복된 전화번호가 있는지 확인합니다.")
     public ResponseEntity<Boolean> checkPhoneNumExists(@RequestBody @Valid String phoneNum) {
         return ResponseEntity.ok().body(authService.isExistsPhoneNum(phoneNum));
     }
