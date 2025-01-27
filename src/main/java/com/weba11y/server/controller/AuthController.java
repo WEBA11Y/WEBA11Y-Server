@@ -63,19 +63,19 @@ public class AuthController {
 
     @GetMapping("/api/v1/join/check-username")
     @Operation(summary = "아이디 중복 조회", description = "중복된 아이디가 있는지 확인합니다.")
-    public ResponseEntity<Boolean> checkUsernameExists(@RequestBody @Valid String username) {
+    public ResponseEntity<Boolean> checkUsernameExists(@RequestParam("username") @Valid String username) {
         return ResponseEntity.ok().body(authService.isExistsUsername(username));
     }
 
     @GetMapping("/api/v1/join/check-email")
     @Operation(summary = "이메일 중복 조회", description = "중복된 이메일이 있는지 확인합니다.")
-    public ResponseEntity<Boolean> checkEmailExists(@RequestBody @Valid String email) {
+    public ResponseEntity<Boolean> checkEmailExists(@RequestParam("email") @Valid String email) {
         return ResponseEntity.ok().body(authService.isExistsEmail(email));
     }
 
     @GetMapping("/api/v1/join/check-phoneNum")
     @Operation(summary = "전화번호 중복 조회", description = "중복된 전화번호가 있는지 확인합니다.")
-    public ResponseEntity<Boolean> checkPhoneNumExists(@RequestBody @Valid String phoneNum) {
+    public ResponseEntity<Boolean> checkPhoneNumExists(@RequestParam("phone") @Valid String phoneNum) {
         return ResponseEntity.ok().body(authService.isExistsPhoneNum(phoneNum));
     }
 
