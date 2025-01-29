@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -95,6 +96,15 @@ public class AuthController {
         return ResponseEntity.ok().body(authService.reissuingAccessToken(refreshTokenCookie.getValue()));
     }
 
+    // 로그아웃
+    @GetMapping("/api/v1/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        // Cookie 에서 Refresh Token 찾는다.
+        Cookie refreshTokenCookie = CookieUtil.findCookie(request, REFRESH_TOKEN_COOKIE);
+        if (refreshTokenCookie != null && refreshTokenCookie.getValue() != null && !refreshTokenCookie.getValue().equals(""))
+            CookieUtil.deleteCookie(response, refreshTokenCookie); // Refresh Token 삭제 -> Refresh Token의 정보 소멸
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
     private Long getMemberId(Principal principal) {
         return principal instanceof UsernamePasswordAuthenticationToken
                 ? (Long) ((UsernamePasswordAuthenticationToken) principal).getPrincipal()
