@@ -5,9 +5,13 @@ import com.weba11y.server.dto.member.JoinDto;
 import com.weba11y.server.dto.member.LoginDto;
 import com.weba11y.server.dto.member.MemberDto;
 import com.weba11y.server.dto.member.UpdateMemberDto;
+import com.weba11y.server.exception.custom.InvalidateTokenException;
 import com.weba11y.server.service.AuthService;
+import com.weba11y.server.util.CookieUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
+import static com.weba11y.server.util.CookieUtil.*;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -24,6 +30,8 @@ import java.security.Principal;
 public class AuthController {
 
     private final AuthService authService;
+
+    private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
 
     @PostMapping("/api/v1/login")
     @Operation(summary = "로그인", description = "로그인 성공시 인증 토큰을 발급합니다.")
@@ -77,6 +85,14 @@ public class AuthController {
     @Operation(summary = "전화번호 중복 조회", description = "중복된 전화번호가 있는지 확인합니다.")
     public ResponseEntity<Boolean> checkPhoneNumExists(@RequestParam("phone") @Valid String phoneNum) {
         return ResponseEntity.ok().body(authService.isExistsPhoneNum(phoneNum));
+    }
+
+    @GetMapping("/api/v1/reissuing-token")
+    public ResponseEntity<String> reissuingAccessToken(HttpServletRequest request) {
+        Cookie refreshTokenCookie = findCookie(request, REFRESH_TOKEN_COOKIE);
+        if (refreshTokenCookie == null || refreshTokenCookie.getValue().equals(""))
+            throw new InvalidateTokenException("토큰이 존재하지 않습니다.");
+        return ResponseEntity.ok().body(authService.reissuingAccessToken(refreshTokenCookie.getValue()));
     }
 
     private Long getMemberId(Principal principal) {

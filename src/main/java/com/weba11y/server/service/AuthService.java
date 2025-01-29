@@ -20,4 +20,10 @@ public interface AuthService {
     MemberDto updateMember(Long memberId, UpdateMemberDto updateMemberDto);
 
     String deleteMember(Long memberId);
+
+    String reissuingAccessToken(String refreshToken);
+
+    TokenInfo getTokenInfo(String token);
+
+    boolean tokenIsExpired(String token);
 }
