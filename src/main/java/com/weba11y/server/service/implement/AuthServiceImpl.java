@@ -4,6 +4,8 @@ import com.weba11y.server.domain.Member;
 import com.weba11y.server.domain.Token;
 import com.weba11y.server.dto.member.*;
 import com.weba11y.server.exception.custom.DuplicateFieldException;
+import com.weba11y.server.exception.custom.ExpiredRefreshTokenException;
+import com.weba11y.server.exception.custom.ExpiredTokenException;
 import com.weba11y.server.repository.MemberRepository;
 import com.weba11y.server.service.AuthService;
 import com.weba11y.server.util.CookieUtil;
@@ -136,6 +138,37 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public boolean isExistsPhoneNum(String phoneNum) {
         return repository.existsByPhoneNum(phoneNum);
+    }
+
+    @Override
+    public String reissuingAccessToken(String refreshToken) {
+        // Refresh Token 검증.
+        try {
+            JwtUtil.validateToken(refreshToken, secret);
+        } catch (ExpiredTokenException e) {
+            // RefreshToken 만료시 Data 삭제.
+            throw new ExpiredRefreshTokenException("토큰이 만료되었습니다.");
+        }
+        // Access Token 재발급
+        return JwtUtil.reissuingToken(getTokenInfo(refreshToken), accessTokenExpiration, secret);
+    }
+
+    @Override
+    public TokenInfo getTokenInfo(String token) {
+        tokenIsExpired(token);
+        return JwtUtil.getTokenInfo(token, secret);
+    }
+
+    @Override
+    public boolean tokenIsExpired(String token) {
+        try {
+            JwtUtil.validateToken(token, secret); // 토큰 검증
+            return true;
+        } catch (ExpiredTokenException e) {
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // 비밀번호
