@@ -29,6 +29,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'javax.xml.bind:jaxb-api:2.3.0'
+    // https://mvnrepository.com/artifact/io.github.cdimascio/dotenv-java
+    implementation 'io.github.cdimascio:dotenv-java:3.0.0'
     // JWT
     implementation 'io.jsonwebtoken:jjwt:0.9.1'
 

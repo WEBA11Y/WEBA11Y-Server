@@ -40,6 +40,10 @@ logging:
 
 ## JWT
 jwt:
-  secret: ${JWT_SECRET_KEY}
+  secret: jwt.test.secret
   access-token-expiration: 600000
   refresh-token-expiration: 1209600000
+
+## Client
+client:
+  url: http://localhost:3000
