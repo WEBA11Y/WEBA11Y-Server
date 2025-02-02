@@ -26,6 +26,6 @@ public class SwaggerConfig {
                         .addSecuritySchemes(AUTH_TOKEN_HEADER, new SecurityScheme()
                                 .name(AUTH_TOKEN_HEADER)
                                 .type(SecurityScheme.Type.HTTP)
-                                .scheme("bearer")));
+                                .scheme("Bearer")));
     }
 }
