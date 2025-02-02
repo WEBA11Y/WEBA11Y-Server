@@ -20,16 +20,13 @@ public class Member extends BaseEntity {
     private Long id;
 
     @Column(nullable = false, unique = true, length = 10)
-    private String username;
+    private String userId;
 
     @Column(nullable = false, length = 250)
     private String password;
 
     @Column(nullable = false, length = 20)
     private String name;
-
-    @Column(nullable = false, unique = true)
-    private String email;
 
     @Column(nullable = false, unique = true, length = 15)
     private String phoneNum;
@@ -46,11 +43,10 @@ public class Member extends BaseEntity {
     private LocalDate birthday;
 
     @Builder
-    public Member(String username, String password, String name, String email, String phoneNum, LocalDate birthday) {
-        this.username = username;
+    public Member(String userId, String password, String name, String phoneNum, LocalDate birthday) {
+        this.userId = userId;
         this.password = password;
         this.name = name;
-        this.email = email;
         this.phoneNum = phoneNum;
         this.birthday = birthday;
         this.role = Role.ROLE_USER; // 기본 역할
@@ -58,8 +54,7 @@ public class Member extends BaseEntity {
     }
 
     // 업데이트 메서드
-    public void update(String email, String phoneNum) {
-        this.email = email;
+    public void update( String phoneNum) {
         this.phoneNum = phoneNum;
     }
 

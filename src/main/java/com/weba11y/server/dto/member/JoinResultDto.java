@@ -10,5 +10,5 @@ import lombok.*;
 public class JoinResultDto {
     private String message;
     private Long id;
-    private String username;
+    private String userId;
 }

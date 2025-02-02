@@ -6,7 +6,7 @@ import com.weba11y.server.dto.member.JoinDto;
 import java.util.Optional;
 
 public interface MemberCustomRepository {
-    Optional<Member> findByUsername(String username);
+    Optional<Member> findByUserId(String userId);
 
     boolean existsUniqueInfo(JoinDto joinDto);
 

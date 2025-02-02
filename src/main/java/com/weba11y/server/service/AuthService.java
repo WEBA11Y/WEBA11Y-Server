@@ -9,9 +9,7 @@ public interface AuthService {
 
     JoinResultDto join(JoinDto joinDto);
 
-    boolean isExistsUsername(String username);
-
-    boolean isExistsEmail(String username);
+    boolean isExistsUserId(String userId);
 
     boolean isExistsPhoneNum(String username);
 

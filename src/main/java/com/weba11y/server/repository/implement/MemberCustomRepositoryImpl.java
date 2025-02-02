@@ -16,10 +16,10 @@ public class MemberCustomRepositoryImpl implements MemberCustomRepository {
     private final EntityManager em;
 
     @Override
-    public Optional<Member> findByUsername(String username) {
+    public Optional<Member> findByUserId(String userId) {
         try {
-            Member member = em.createQuery("select m from Member m where m.username =: username", Member.class)
-                    .setParameter("username", username)
+            Member member = em.createQuery("select m from Member m where m.userId =: userId", Member.class)
+                    .setParameter("userId", userId)
                     .getSingleResult();
             return Optional.of(member);
         } catch (NoResultException e) {
@@ -29,11 +29,10 @@ public class MemberCustomRepositoryImpl implements MemberCustomRepository {
 
     @Override
     public boolean existsUniqueInfo(JoinDto joinDto) {
-        Long count =  em.createQuery("select count(m) from Member m " +
-                                "where m.username =:username or m.email =: email or m.phoneNum =: phoneNum"
+        Long count = em.createQuery("select count(m) from Member m " +
+                                "where m.userId =:userId or m.phoneNum =: phoneNum"
                         , Long.class)
-                .setParameter("username", joinDto.getUsername())
-                .setParameter("email", joinDto.getEmail())
+                .setParameter("userId", joinDto.getUserId())
                 .setParameter("phoneNum", joinDto.getPhoneNum())
                 .getSingleResult();
         return count == 0;

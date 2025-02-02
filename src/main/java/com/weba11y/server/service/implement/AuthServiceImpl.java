@@ -55,7 +55,7 @@ public class AuthServiceImpl implements AuthService {
             return JoinResultDto.builder()
                     .message("회원가입이 완료되었습니다.")
                     .id(saveMember.getId())
-                    .username(saveMember.getUsername())
+                    .userId(saveMember.getUserId())
                     .build();
         } catch (Exception e) {
             throw new RuntimeException("회원가입 중 오류발생 {}");
@@ -64,7 +64,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResultDto login(LoginDto loginDto, HttpServletResponse response) {
-        Member findMember = getMemberByUsername(loginDto.getUsername());
+        Member findMember = getMemberByUserId(loginDto.getUserId());
         if (!isPasswordMatching(loginDto, findMember))
             throw new BadCredentialsException("비밀번호가 일치하지 않습니다");
 
@@ -75,7 +75,7 @@ public class AuthServiceImpl implements AuthService {
         return LoginResultDto.builder()
                 .message("로그인을 성공했습니다.")
                 .id(findMember.getId())
-                .username(findMember.getUsername())
+                .userId(findMember.getUserId())
                 .accessToken(token.getAccess_token())
                 .build();
     }
@@ -90,13 +90,10 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public MemberDto updateMember(Long memberId, UpdateMemberDto updateMemberDto) {
         Member member = retrieveMember(memberId);
-        if (isExistsEmail(updateMemberDto.getEmail())) {
-            throw new DuplicateFieldException("이미 사용 중인 이메일입니다.");
-        }
         if (isExistsPhoneNum(updateMemberDto.getPhoneNum())) {
             throw new DuplicateFieldException("이미 사용 중인 전화번호입니다.");
         }
-        member.update(updateMemberDto.getEmail(), updateMemberDto.getPhoneNum());
+        member.update(updateMemberDto.getPhoneNum());
         return MemberDto.of(member);
     }
 
@@ -113,8 +110,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    private Member getMemberByUsername(String username) {
-        return repository.findByUsername(username)
+    private Member getMemberByUserId(String userId) {
+        return repository.findByUserId(userId)
                 .orElseThrow(()
                         -> new NoSuchElementException("존재하지 않는 회원입니다"));
     }
@@ -126,13 +123,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public boolean isExistsUsername(String username) {
-        return repository.existsByUsername(username);
-    }
-
-    @Override
-    public boolean isExistsEmail(String email) {
-        return repository.existsByEmail(email);
+    public boolean isExistsUserId(String userId) {
+        return repository.existsByUserId(userId);
     }
 
     @Override
