@@ -9,6 +9,7 @@ import com.weba11y.server.service.InspectionUrlService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -33,5 +34,25 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
         return repository.findById(id).orElseThrow(
                 () -> new NoSuchElementException("URL을 찾을 수 없습니다.")
         );
+    }
+
+    @Override
+    public List<InspectionUrlResponseDto> retrieveAll(Long memberId) {
+        List<InspectionUrl> urls = repository.findAllByMemberId(memberId);
+        return urls.stream().map(url -> url.toDto()).toList();
+    }
+
+    @Override
+    public List<InspectionUrlResponseDto> retrieveChildUrl(Long memberId, Long parentUrlId) {
+        List<InspectionUrl> childUrls = repository.findAllByMemberIdAndParentId(memberId, parentUrlId);
+        return childUrls.stream().map(url -> url.toDto()).toList();
+    }
+
+    @Override
+    public InspectionUrlResponseDto retrieveUrl(Long urlId, Long memberId) {
+        InspectionUrl url = repository.findByIdAndMemberId(urlId, memberId).orElseThrow(
+                () -> new NoSuchElementException("해당 URL을 찾을 수 없습니다.")
+        );
+        return url.toDto();
     }
 }

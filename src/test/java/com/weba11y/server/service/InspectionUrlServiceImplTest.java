@@ -6,6 +6,7 @@ import com.weba11y.server.domain.Member;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlRequestDto;
 import com.weba11y.server.repository.InspectionUrlRepository;
 import com.weba11y.server.repository.MemberRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import org.springframework.validation.Validator;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.*;
@@ -38,7 +40,7 @@ public class InspectionUrlServiceImplTest {
     private static InspectionUrl parentUrl;
 
     @BeforeEach
-    void before() {
+    void beforeEach() {
         // Member 생성
         Member newMember = Member.builder()
                 .username("test")
@@ -60,6 +62,18 @@ public class InspectionUrlServiceImplTest {
                 .build();
 
         parentUrl = inspectionUrlRepository.save(parent);
+
+        // Child URL 생성
+        for (int i = 0; i < 5; i++) {
+            InspectionUrl childUrl = InspectionUrl.builder()
+                    .url("https://www.test.com/child/" + i)
+                    .title("Child " + i)
+                    .member(member)
+                    .build();
+            childUrl.addParentUrl(parentUrl);
+            inspectionUrlRepository.save(childUrl);
+            parentUrl.addChildUrl(childUrl);
+        }
     }
 
     @Test
@@ -112,12 +126,50 @@ public class InspectionUrlServiceImplTest {
                 .build();
         // when
         InspectionUrl parent = inspectionUrlRepository.findById(childUrl.getParentId()).orElseThrow(()
-                ->new NoSuchElementException("URL을 찾지 못했습니다."));
+                -> new NoSuchElementException("URL을 찾지 못했습니다."));
         InspectionUrl newChildUrl = childUrl.toEntity(parent, member);
 
         InspectionUrl savedUrl = inspectionUrlRepository.save(newChildUrl);
 
         // then
         assertThat(savedUrl.getParent().getId()).isEqualTo(parent.getId());
+    }
+
+    @Test
+    @DisplayName("모든 URL 가져오기")
+    void 모든_URL_가져오기() {
+        // given
+        Long memberId = member.getId();
+        // when
+        List<InspectionUrl> urls = inspectionUrlRepository.findAllByMemberId(memberId);
+        // then
+        assertThat(6).isEqualTo(urls.size());
+    }
+
+    @Test
+    @DisplayName("URL 조회")
+    void URL_조회() {
+        // given
+        Long memberId = member.getId();
+        Long urlId = parentUrl.getId();
+        // when
+        InspectionUrl findUrl = inspectionUrlRepository.findByIdAndMemberId(urlId, memberId).orElseThrow(
+                () -> new NoSuchElementException("해당 URL을 찾을 수 없습니다.")
+        );
+        // then
+        assertThat(parentUrl.getId()).isEqualTo(findUrl.getId());
+        assertThat(parentUrl.getChild().size()).isEqualTo(findUrl.getChild().size());
+    }
+
+    @Test
+    @DisplayName("자식 URL 가져오기")
+    void 자식_URL_가져오기() {
+        // given
+        Long memberId = member.getId();
+        Long parentId = parentUrl.getId();
+        // when
+        List<InspectionUrl> childUrls = inspectionUrlRepository.findAllByMemberIdAndParentId(memberId, parentId);
+        // then
+        assertThat(5).isEqualTo(childUrls.size());
     }
 }
