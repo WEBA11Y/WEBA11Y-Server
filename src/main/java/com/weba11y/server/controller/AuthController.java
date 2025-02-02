@@ -82,7 +82,7 @@ public class AuthController {
         return ResponseEntity.ok().body(authService.isExistsEmail(email));
     }
 
-    @GetMapping("/api/v1/join/check-phoneNum")
+    @GetMapping("/api/v1/join/check-phone")
     @Operation(summary = "전화번호 중복 조회", description = "중복된 전화번호가 있는지 확인합니다.")
     public ResponseEntity<Boolean> checkPhoneNumExists(@RequestParam("phone") @Valid String phoneNum) {
         return ResponseEntity.ok().body(authService.isExistsPhoneNum(phoneNum));
