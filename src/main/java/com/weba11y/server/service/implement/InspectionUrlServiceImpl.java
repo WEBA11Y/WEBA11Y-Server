@@ -31,7 +31,7 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
             InspectionUrl newUrl;
             // 부모 URL 유무
             if (dto.getParentId() != null && dto.getParentId() > 0) {
-                InspectionUrl parentUrl = retrieveById(dto.getParentId());
+                InspectionUrl parentUrl = retrieveUrlById(dto.getParentId());
                 newUrl = dto.toEntity(parentUrl, member);
             } else {
                 newUrl = dto.toEntity(member);
@@ -43,10 +43,13 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
         }
     }
 
-    private InspectionUrl retrieveById(Long id) {
-        return repository.findById(id).orElseThrow(
-                () -> new NoSuchElementException("URL을 찾을 수 없습니다.")
-        );
+
+    @Transactional
+    @Override
+    public InspectionUrlResponseDto updateUrl(InspectionUrlRequestDto requestDto, Long urlId) {
+        InspectionUrl url = retrieveUrlById(urlId);
+        url.update(requestDto);
+        return url.toDto();
     }
 
     @Override
@@ -67,7 +70,11 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
                 () -> new NoSuchElementException("해당 URL을 찾을 수 없습니다.")
         ).toDto();
     }
-
+    private InspectionUrl retrieveUrlById(Long urlId) {
+        return repository.findByUrlId(urlId).orElseThrow(
+                () -> new NoSuchElementException("해당 URL을 찾을 수 없습니다.")
+        );
+    }
     private void isExistsInspectionUrl(String url, Long memberId) {
         if (repository.existsByUrlAndMemberId(url, memberId))
             throw new DuplicateFieldException("이미 등록된 URL 입니다.");

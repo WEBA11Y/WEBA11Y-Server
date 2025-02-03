@@ -17,6 +17,23 @@ public class InspectionUrlCustomRepositoryImpl implements InspectionUrlCustomRep
     private final EntityManager em;
 
     @Override
+    public Optional<InspectionUrl> findByUrlId(Long urlId) {
+        try {
+            InspectionUrl inspectionUrl = em.createQuery("SELECT DISTINCT iu FROM InspectionUrl iu " +
+                                    "LEFT JOIN FETCH iu.parent " +
+                                    "LEFT JOIN FETCH iu.child c " +
+                                    "LEFT JOIN FETCH c.child " +
+                                    "WHERE iu.id =:urlId ",
+                            InspectionUrl.class)
+                    .setParameter("urlId", urlId)
+                    .getSingleResult();
+            return Optional.of(inspectionUrl);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public List<InspectionUrl> findAllByMemberId(Long memberId) {
         return em.createQuery("SELECT DISTINCT iu FROM InspectionUrl iu " +
                                 "LEFT JOIN FETCH iu.parent " +

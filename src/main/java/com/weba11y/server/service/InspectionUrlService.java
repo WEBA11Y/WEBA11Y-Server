@@ -15,4 +15,6 @@ public interface InspectionUrlService {
     List<InspectionUrlResponseDto> retrieveChildUrl(Long memberId, Long parentUrlId);
 
     InspectionUrlResponseDto retrieveUrl(Long urlId, Long memberId);
+
+    InspectionUrlResponseDto updateUrl(InspectionUrlRequestDto requestDto, Long urlId);
 }

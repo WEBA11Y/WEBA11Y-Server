@@ -19,7 +19,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name="URL 관리 API", description = "URL을 관리하는 API입니다.")
+@Tag(name = "URL 관리 API", description = "URL을 관리하는 API입니다.")
 public class InspectionUrlController {
 
     private final InspectionUrlService inspectionUrlService;
@@ -50,8 +50,10 @@ public class InspectionUrlController {
 
     // URL 수정
     @PutMapping("/api/v1/urls/{id}")
-    public ResponseEntity<?> updateUrl(@PathVariable("id") Long urlId) {
-        return ResponseEntity.ok().body("");
+    @Operation(summary = "URL 정보 수정", description = "URL의 정보를 수정합니다.")
+    public ResponseEntity<?> updateUrl(@PathVariable("id") Long urlId,
+                                       @RequestBody @Valid InspectionUrlRequestDto requestDto) {
+        return ResponseEntity.ok().body(inspectionUrlService.updateUrl(requestDto, urlId));
     }
 
     // URL 삭제

@@ -3,6 +3,7 @@ package com.weba11y.server.domain;
 
 import com.weba11y.server.domain.common.BaseEntity;
 import com.weba11y.server.domain.enums.InspectionStatus;
+import com.weba11y.server.dto.InspectionUrl.InspectionUrlRequestDto;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlResponseDto;
 import jakarta.persistence.*;
 import lombok.*;
@@ -85,4 +86,9 @@ public class InspectionUrl extends BaseEntity {
                 .build();
     }
 
+    public void update(InspectionUrlRequestDto requestDto) {
+        this.summary = requestDto.getSummary();
+        this.url = requestDto.getUrl();
+        onUpdate();
+    }
 }
