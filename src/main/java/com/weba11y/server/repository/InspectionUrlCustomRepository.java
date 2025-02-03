@@ -7,6 +7,8 @@ import java.util.Optional;
 
 public interface InspectionUrlCustomRepository {
     List<InspectionUrl> findAllByMemberId(Long memberId);
+
     Optional<InspectionUrl> findByIdAndMemberId(Long urlId, Long memberId);
 
+    boolean existsByUrlAndMemberId(String url, Long memberId);
 }

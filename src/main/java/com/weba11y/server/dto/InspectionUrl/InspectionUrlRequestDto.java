@@ -13,12 +13,12 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class InspectionUrlRequestDto {
-    @NotNull
-    @Size(min = 1, max = 255)
+    @NotNull(message = "설명은 최소 2글자 최대 255자로 입력해야합니다.")
+    @Size(min = 2, max = 255, message = "설명은 최소 2글자 최대 255자로 입력해야합니다.")
     private String summary;
 
-    @NotNull
-    @Size(min = 1, max = 2048)
+    @NotNull(message = "URL을 입력하세요.")
+    @Size(min = 10, max = 2048)
     @Pattern(regexp = "^(http|https)://.*$", message = "URL은 http:// 또는 https:// 로 시작해야합니다.")
     private String url;
 

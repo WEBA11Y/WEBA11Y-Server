@@ -4,15 +4,18 @@ import com.weba11y.server.domain.InspectionUrl;
 import com.weba11y.server.domain.Member;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlRequestDto;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlResponseDto;
+import com.weba11y.server.exception.custom.DuplicateFieldException;
 import com.weba11y.server.repository.InspectionUrlRepository;
 import com.weba11y.server.service.InspectionUrlService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -22,15 +25,22 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     @Transactional
     @Override
     public InspectionUrlResponseDto saveUrl(InspectionUrlRequestDto dto, Member member) {
-        InspectionUrl newUrl;
-        // 부모 URL 유무
-        if (dto.getParentId() != null && dto.getParentId() > 0) {
-            InspectionUrl parentUrl = retrieveById(dto.getParentId());
-            newUrl = dto.toEntity(parentUrl, member);
-        } else {
-            newUrl = dto.toEntity(member);
+        // 이미 등록된 URL 인지 확인
+        isExistsInspectionUrl(dto.getUrl(), member.getId());
+        try {
+            InspectionUrl newUrl;
+            // 부모 URL 유무
+            if (dto.getParentId() != null && dto.getParentId() > 0) {
+                InspectionUrl parentUrl = retrieveById(dto.getParentId());
+                newUrl = dto.toEntity(parentUrl, member);
+            } else {
+                newUrl = dto.toEntity(member);
+            }
+            return repository.save(newUrl).toDto();
+        }catch (Exception e){
+            log.error("URL 등록 실패 : {}", e.getMessage());
+            throw new RuntimeException("URL 등록을 실패했습니다 : " + dto.getUrl());
         }
-        return repository.save(newUrl).toDto();
     }
 
     private InspectionUrl retrieveById(Long id) {
@@ -58,5 +68,9 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
         ).toDto();
     }
 
+    private void isExistsInspectionUrl(String url, Long memberId) {
+        if (repository.existsByUrlAndMemberId(url, memberId))
+            throw new DuplicateFieldException("이미 등록된 URL 입니다.");
+    }
 
 }

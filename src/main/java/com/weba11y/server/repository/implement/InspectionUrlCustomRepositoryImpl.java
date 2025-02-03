@@ -47,4 +47,15 @@ public class InspectionUrlCustomRepositoryImpl implements InspectionUrlCustomRep
             return Optional.empty();
         }
     }
+
+    @Override
+    public boolean existsByUrlAndMemberId(String url, Long memberId) {
+        Long count = em.createQuery("SELECT COUNT(iu) FROM InspectionUrl iu " +
+                        "WHERE iu.member.id = :memberId " +
+                        "AND iu.url = :url", Long.class)
+                .setParameter("memberId", memberId)
+                .setParameter("url", url)
+                .getSingleResult();
+        return count > 0;
+    }
 }
