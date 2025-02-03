@@ -2,12 +2,14 @@ package com.weba11y.server.domain;
 
 
 import com.weba11y.server.domain.common.BaseEntity;
+import com.weba11y.server.domain.enums.InspectionStatus;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlResponseDto;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -20,25 +22,29 @@ public class InspectionUrl extends BaseEntity {
     private Long id;
 
     @Column(nullable = false, length = 255)
-    private String title;
+    private String summary;
 
     @Column(nullable = false, length = 2048)
     private String url;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    private InspectionStatus status = InspectionStatus.PENDING;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private InspectionUrl parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<InspectionUrl> child = new ArrayList<>();
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @BatchSize(size = 10)
+    private Set<InspectionUrl> child = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
     @Builder
-    public InspectionUrl(String title, String url, Member member) {
-        this.title = title;
+    public InspectionUrl(String summary, String url, Member member) {
+        this.summary = summary;
         this.url = url;
         this.member = member;
     }
@@ -49,6 +55,11 @@ public class InspectionUrl extends BaseEntity {
 
     public void addParentUrl(InspectionUrl parent) {
         this.parent = parent;
+        parent.addChildUrl(this);
+    }
+
+    public void updateStatus(InspectionStatus status) {
+        this.status = status;
     }
 
     public void removeChildUrl(InspectionUrl child) {
@@ -62,11 +73,16 @@ public class InspectionUrl extends BaseEntity {
     public InspectionUrlResponseDto toDto() {
         return InspectionUrlResponseDto.builder()
                 .id(this.id)
-                .title(this.title)
+                .summary(this.summary)
                 .url(this.url)
-                .parentId(this.parent.getId())
+                .status(this.status)
+                .parentId(this.parent != null ? this.parent.getId() : null)
+                .child(this.child != null ? this.child.stream()
+                        .map(InspectionUrl::toDto)
+                        .toList() : null)
                 .createDate(this.getCreateDate())
                 .updateDate(this.getUpdateDate())
                 .build();
     }
+
 }
