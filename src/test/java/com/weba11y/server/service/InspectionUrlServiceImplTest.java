@@ -6,7 +6,6 @@ import com.weba11y.server.domain.Member;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlRequestDto;
 import com.weba11y.server.repository.InspectionUrlRepository;
 import com.weba11y.server.repository.MemberRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,11 +42,10 @@ public class InspectionUrlServiceImplTest {
     void beforeEach() {
         // Member 생성
         Member newMember = Member.builder()
-                .username("test")
+                .userId("test")
                 .password("test1234")
                 .name("test")
                 .birthday(LocalDate.now())
-                .email("test@test.com")
                 .phoneNum("01011112222")
                 .build();
 
@@ -56,7 +54,7 @@ public class InspectionUrlServiceImplTest {
 
         // parent URL 생성
         InspectionUrl parent = InspectionUrl.builder()
-                .title("Test")
+                .summary("Test")
                 .url("https://www.test.com")
                 .member(newMember)
                 .build();
@@ -67,7 +65,7 @@ public class InspectionUrlServiceImplTest {
         for (int i = 0; i < 5; i++) {
             InspectionUrl childUrl = InspectionUrl.builder()
                     .url("https://www.test.com/child/" + i)
-                    .title("Child " + i)
+                    .summary("Child " + i)
                     .member(member)
                     .build();
             childUrl.addParentUrl(parentUrl);
@@ -81,7 +79,7 @@ public class InspectionUrlServiceImplTest {
     void URL_등록() {
         // given
         InspectionUrlRequestDto newUrlDto = InspectionUrlRequestDto.builder()
-                .title("Naver")
+                .summary("Naver")
                 .url("https://www.naver.com")
                 .build();
         // when
@@ -98,7 +96,7 @@ public class InspectionUrlServiceImplTest {
     void 잘못된_URL_등록() {
         // given
         InspectionUrlRequestDto dto = InspectionUrlRequestDto.builder()
-                .title("Naver")
+                .summary("Naver")
                 .url("www.naver.com") // 잘못된 URL
                 .build();
 
@@ -120,7 +118,7 @@ public class InspectionUrlServiceImplTest {
     void Child_URL_등록() {
         // given
         InspectionUrlRequestDto childUrl = InspectionUrlRequestDto.builder()
-                .title("Naver")
+                .summary("Naver")
                 .url("https://www.naver.com")
                 .parentId(parentUrl.getId())
                 .build();
