@@ -8,15 +8,18 @@ import com.weba11y.server.repository.InspectionUrlRepository;
 import com.weba11y.server.service.InspectionUrlService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class InspectionUrlServiceImpl implements InspectionUrlService {
     private final InspectionUrlRepository repository;
 
+    @Transactional
     @Override
     public InspectionUrlResponseDto saveUrl(InspectionUrlRequestDto dto, Member member) {
         InspectionUrl newUrl;
@@ -50,9 +53,10 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
 
     @Override
     public InspectionUrlResponseDto retrieveUrl(Long urlId, Long memberId) {
-        InspectionUrl url = repository.findByIdAndMemberId(urlId, memberId).orElseThrow(
+        return repository.findByIdAndMemberId(urlId, memberId).orElseThrow(
                 () -> new NoSuchElementException("해당 URL을 찾을 수 없습니다.")
-        );
-        return url.toDto();
+        ).toDto();
     }
+
+
 }

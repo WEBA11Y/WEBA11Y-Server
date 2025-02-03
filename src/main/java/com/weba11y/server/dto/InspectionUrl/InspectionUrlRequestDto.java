@@ -15,7 +15,7 @@ import lombok.*;
 public class InspectionUrlRequestDto {
     @NotNull
     @Size(min = 1, max = 255)
-    private String title;
+    private String summary;
 
     @NotNull
     @Size(min = 1, max = 2048)
@@ -28,7 +28,7 @@ public class InspectionUrlRequestDto {
     // 부모 URL이 있는 경우
     public InspectionUrl toEntity(InspectionUrl parent, Member member) {
         InspectionUrl inspectionUrl = InspectionUrl.builder()
-                .title(this.title)
+                .summary(this.summary)
                 .url(this.url)
                 .member(member)
                 .build();
@@ -38,7 +38,7 @@ public class InspectionUrlRequestDto {
 
     public InspectionUrl toEntity(Member member) {
         return InspectionUrl.builder()
-                .title(this.title)
+                .summary(this.summary)
                 .url(this.url)
                 .member(member)
                 .build();
