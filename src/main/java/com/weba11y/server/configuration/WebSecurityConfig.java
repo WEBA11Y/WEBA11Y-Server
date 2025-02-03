@@ -6,7 +6,6 @@ import com.weba11y.server.service.AuthService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -42,6 +41,7 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable()) // csrf 기본 설정
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v1/member/**").hasRole("USER")
+                        .requestMatchers("/api/v1/urls/**").hasRole("USER")
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(new JwtFilter(authService, secret), UsernamePasswordAuthenticationFilter.class) // Filter 동작 이전에 JWT Filter동작
