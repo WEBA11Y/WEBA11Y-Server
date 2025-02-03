@@ -15,7 +15,7 @@ public class JoinDto {
 
     @NotBlank
     @Size(min = 4, max = 10, message = "아이디는 4-10자리 영문, 숫자 조합으로 입력해주세요.")
-    private String username;
+    private String userId;
 
     @NotBlank
     @Size(min = 8, max = 15, message = "비밀번호는 8-15자리 대소문자 영문, 숫자, 특수기호 조합으로 입력해주세요.")
@@ -26,10 +26,6 @@ public class JoinDto {
     private String name;
 
     @NotBlank
-    @Email(message = "올바른 이메일 형식이 아닙니다.")
-    private String email;
-
-    @NotBlank
     @Pattern(regexp = "^\\d{10,15}$", message = "전화번호는 10-15자리 숫자로 입력해주세요.")
     private String phoneNum;
 
@@ -38,10 +34,9 @@ public class JoinDto {
 
     public Member toEntity(PasswordEncoder passwordEncoder) {
         return Member.builder()
-                .username(this.username)
+                .userId(this.userId)
                 .password(passwordEncoder.encode(this.password)) // 암호화 된 비밀번호
                 .name(this.name)
-                .email(this.email)
                 .phoneNum(this.phoneNum)
                 .birthday(this.birthday)
                 .build();

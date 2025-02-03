@@ -39,7 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
         log.info("HTTP Method : {}", request.getMethod());
 
         // Token이 없을 시 Block
-        if (authorization == null || !authorization.startsWith("bearer ")) {
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }

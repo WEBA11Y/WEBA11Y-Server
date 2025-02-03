@@ -13,9 +13,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberDto {
     private Long id;
-    private String username;
+    private String userId;
     private String name;
-    private String email;
     private String phoneNum;
     private LocalDate birthday;
     private MemberStatus status;
@@ -25,9 +24,8 @@ public class MemberDto {
     public static MemberDto of(Member member) {
         return MemberDto.builder()
                 .id(member.getId())
-                .username(member.getUsername())
+                .userId(member.getUserId())
                 .name(member.getName())
-                .email(member.getEmail())
                 .phoneNum(member.getPhoneNum())
                 .birthday(member.getBirthday())
                 .status(member.getStatus())
