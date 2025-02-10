@@ -63,6 +63,13 @@ public class InspectionUrl extends BaseEntity {
         this.status = status;
     }
 
+    public void delete() {
+        status = InspectionStatus.HIDE;
+        if(!child.isEmpty())
+            child.stream().forEach(child -> child.delete());
+        onDelete();
+    }
+
     public void removeChildUrl(InspectionUrl child) {
         if (this.child.contains(child)) {
             this.child.remove(child);

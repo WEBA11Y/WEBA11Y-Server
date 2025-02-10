@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,15 @@ public class InspectionUrlController {
 
     private final InspectionUrlService inspectionUrlService;
     private final AuthService authService;
+
+    // URL 검증
+    @GetMapping("/api/v1/urls/validate")
+    @Operation(summary = "URL 검증", description = "URL이 실제로 존재하고, 올바른 형식인지 검증합니다.")
+    public ResponseEntity<String> validateUrl(@RequestParam @Valid String url) {
+        return inspectionUrlService.validateUrl(url)
+                ? ResponseEntity.status(HttpStatus.OK).body("올바른 URL 입니다.")
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("잘못된 URL 형식입니다.");
+    }
 
     // URL 등록
     @PostMapping("/api/v1/urls")
@@ -50,7 +60,7 @@ public class InspectionUrlController {
 
     // URL 수정
     @PutMapping("/api/v1/urls/{id}")
-    @Operation(summary = "URL 정보 수정", description = "URL의 정보를 수정합니다.")
+    @Operation(summary = "등록된 URL 정보 수정", description = "URL의 정보를 수정합니다.")
     public ResponseEntity<?> updateUrl(@PathVariable("id") Long urlId,
                                        @RequestBody @Valid InspectionUrlRequestDto requestDto) {
         return ResponseEntity.ok().body(inspectionUrlService.updateUrl(requestDto, urlId));
@@ -58,8 +68,9 @@ public class InspectionUrlController {
 
     // URL 삭제
     @DeleteMapping("/api/v1/urls/{id}")
-    public ResponseEntity<?> deleteUrl(@PathVariable("id") Long urlId) {
-        return ResponseEntity.ok().body("");
+    @Operation(summary = "등록된 URL 삭제", description = "URL 정보를 삭제합니다.")
+    public ResponseEntity<?> deleteUrl(@PathVariable("id") Long urlId, Principal principal) {
+        return ResponseEntity.ok().body(inspectionUrlService.deleteUrl(urlId, getMemberId(principal)));
     }
 
     private Long getMemberId(Principal principal) {

@@ -17,4 +17,8 @@ public interface InspectionUrlService {
     InspectionUrlResponseDto retrieveUrl(Long urlId, Long memberId);
 
     InspectionUrlResponseDto updateUrl(InspectionUrlRequestDto requestDto, Long urlId);
+
+    String deleteUrl(Long urlId, Long memberId);
+
+    boolean validateUrl(String url);
 }

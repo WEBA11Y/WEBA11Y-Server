@@ -17,9 +17,14 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,6 +43,10 @@ public class InspectionUrlServiceImplTest {
     private static Member member;
     private static InspectionUrl parentUrl;
 
+    private static final String URL_REGEX = "^(https?://)(www\\.)?([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}(/.*)?$";
+
+    private static final Pattern URL_PATTERN = Pattern.compile(URL_REGEX);
+
     @BeforeEach
     void beforeEach() {
         // Member 생성
@@ -46,7 +55,7 @@ public class InspectionUrlServiceImplTest {
                 .password("test1234")
                 .name("test")
                 .birthday(LocalDate.now())
-                .phoneNum("01011112222")
+                .phoneNum("01011332244")
                 .build();
 
         member = memberRepository.save(newMember);
@@ -169,5 +178,59 @@ public class InspectionUrlServiceImplTest {
         List<InspectionUrl> childUrls = inspectionUrlRepository.findAllByMemberIdAndParentId(memberId, parentId);
         // then
         assertThat(5).isEqualTo(childUrls.size());
+    }
+
+
+    @Test
+    @DisplayName("올바른 URL인지 검증")
+    void URL_검증() {
+        // given
+        String url = "https://www.naver.com";
+        String url2 = "https://youtube.com";
+        String url3 = "www.youtube.com";
+        String url4 = "youtube.com";
+
+        // when
+        boolean result = URL_PATTERN.matcher(url).matches();
+        boolean result2 = URL_PATTERN.matcher(url2).matches();
+        boolean result3 = URL_PATTERN.matcher(url3).matches();
+        boolean result4 = URL_PATTERN.matcher(url4).matches();
+        // then
+        assertTrue(result);
+        assertTrue(result2);
+        assertFalse( result3);
+        assertFalse(result4);
+    }
+
+    @Test
+    @DisplayName("실제로 존재하는 URL인지 검증")
+    void URL_검증2() {
+        // given
+        String url = "https://www.naver.com";
+        String url2 = "https://test.com";
+        String url3 = "https://youtube.com";
+        // when
+        boolean result = doesUrlExist(url);
+        boolean result2 = doesUrlExist(url2);
+        boolean result3 = doesUrlExist(url3);
+        // then
+        assertTrue(result);
+        assertFalse(result2);
+        assertTrue(result3);
+    }
+
+    private boolean doesUrlExist(String url) {
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setRequestMethod("HEAD"); // HEAD 요청을 보내어 응답을 확인
+            connection.setConnectTimeout(5000); // 연결 타임아웃 설정
+            connection.setReadTimeout(5000); // 읽기 타임아웃 설정
+            connection.connect();
+
+            int responseCode = connection.getResponseCode();
+            return (responseCode >= 200 && responseCode < 400); // 200~399 응답 코드는 유효한 URL
+        } catch (IOException e) {
+            return false; // 예외 발생 시 URL이 존재하지 않음
+        }
     }
 }
