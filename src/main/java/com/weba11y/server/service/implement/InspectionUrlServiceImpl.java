@@ -52,9 +52,7 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
 
     @Override
     public boolean validateUrl(String url) {
-        return URL_PATTERN.matcher(url).matches()
-                ? doesUrlExist(url)
-                : false;
+        return URL_PATTERN.matcher(url).matches() && doesUrlExist(url);
     }
 
 
