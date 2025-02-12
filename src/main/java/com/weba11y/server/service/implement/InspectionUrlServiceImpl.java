@@ -98,13 +98,13 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     @Override
     public List<InspectionUrlResponseDto> retrieveAll(Long memberId) {
         List<InspectionUrl> urls = repository.findAllByMemberId(memberId);
-        return urls.stream().map(url -> url.toDto()).toList();
+        return urls.stream().map(InspectionUrl::toDto).toList();
     }
 
     @Override
     public List<InspectionUrlResponseDto> retrieveChildUrl(Long memberId, Long parentUrlId) {
         List<InspectionUrl> childUrls = repository.findAllByMemberIdAndParentId(memberId, parentUrlId);
-        return childUrls.stream().map(url -> url.toDto()).toList();
+        return childUrls.stream().map(InspectionUrl::toDto).toList();
     }
 
     @Override
