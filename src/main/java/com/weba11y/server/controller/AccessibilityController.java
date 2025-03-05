@@ -1,12 +1,17 @@
 package com.weba11y.server.controller;
 
-import com.weba11y.server.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 
 @RestController
 @RequiredArgsConstructor
-public class AccessibilityController {
+public class  AccessibilityController {
+
+    @PostMapping("/api/v1/accessibility/member")
+    public Mono<?> checkAccessibility(){
+        return
+    }
 
 }

@@ -45,16 +45,15 @@ public class InspectionUrlController {
 
     // 모든 URL 조회
     @GetMapping("/api/v1/urls")
-    @Operation(summary = "등록된 모든 URL 조회", description = "회원이 등록한 모든 URL을 조회합니다.")
+    @Operation(summary = "등록된 모든 상위 URL 조회", description = "회원이 등록한 모든 상위 URL을 조회합니다.")
     public ResponseEntity<List<InspectionUrlResponseDto>> getAllUrl(Principal principal) {
-        return ResponseEntity.ok().body(inspectionUrlService.retrieveAll(getMemberId(principal)));
+        return ResponseEntity.ok().body(inspectionUrlService.retrieveParentUrl(getMemberId(principal)));
     }
 
     // URL 조회
     @GetMapping("/api/v1/urls/{id}")
     @Operation(summary = "선택한 URL 정보 조회", description = "선택한 URL의 정보를 조회합니다.")
     public ResponseEntity<?> getUrl(@PathVariable("id") Long urlId, Principal principal) {
-
         return ResponseEntity.ok().body(inspectionUrlService.retrieveUrl(urlId, getMemberId(principal)));
     }
 

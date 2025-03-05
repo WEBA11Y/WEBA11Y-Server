@@ -12,4 +12,6 @@ public interface InspectionUrlCustomRepository {
 
     Optional<InspectionUrl> findByUrlId(Long urlId);
     boolean existsByUrlAndMemberId(String url, Long memberId);
+
+    List<InspectionUrl> findParentByMemberId(Long memberId);
 }

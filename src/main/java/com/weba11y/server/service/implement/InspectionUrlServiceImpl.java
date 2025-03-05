@@ -29,6 +29,7 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     private static final String URL_REGEX = "^(https?://)(www\\.)?([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}(/.*)?$";
 
     private static final Pattern URL_PATTERN = Pattern.compile(URL_REGEX);
+
     @Transactional
     @Override
     public InspectionUrlResponseDto saveUrl(InspectionUrlRequestDto dto, Member member) {
@@ -99,14 +100,20 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
 
     @Override
     public List<InspectionUrlResponseDto> retrieveAll(Long memberId) {
-        List<InspectionUrl> urls = repository.findAllByMemberId(memberId);
-        return urls.stream().map(url -> url.toDto()).toList();
+        return repository.findAllByMemberId(memberId)
+                .stream().map(url -> url.toDto()).toList();
+    }
+
+    @Override
+    public List<InspectionUrlResponseDto> retrieveParentUrl(Long memberId) {
+        return repository.findParentByMemberId(memberId)
+                .stream().map(url -> url.toDto()).toList();
     }
 
     @Override
     public List<InspectionUrlResponseDto> retrieveChildUrl(Long memberId, Long parentUrlId) {
-        List<InspectionUrl> childUrls = repository.findAllByMemberIdAndParentId(memberId, parentUrlId);
-        return childUrls.stream().map(url -> url.toDto()).toList();
+        return repository.findAllByMemberIdAndParentId(memberId, parentUrlId)
+                .stream().map(url -> url.toDto()).toList();
     }
 
     @Override

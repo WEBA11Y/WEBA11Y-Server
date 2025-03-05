@@ -9,7 +9,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -43,6 +45,9 @@ public class InspectionUrl extends BaseEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
+    @OneToMany(mappedBy = "inspection_url", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InspectionResult> inspectionResults = new ArrayList<>();
+
     @Builder
     public InspectionUrl(String summary, String url, Member member) {
         this.summary = summary;
@@ -59,13 +64,17 @@ public class InspectionUrl extends BaseEntity {
         parent.addChildUrl(this);
     }
 
+    public void addResult(InspectionResult inspectionResult) {
+        this.inspectionResults.add(inspectionResult);
+    }
+
     public void updateStatus(InspectionStatus status) {
         this.status = status;
     }
 
     public void delete() {
         status = InspectionStatus.HIDE;
-        if(!child.isEmpty())
+        if (!child.isEmpty())
             child.stream().forEach(child -> child.delete());
         onDelete();
     }

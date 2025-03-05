@@ -66,6 +66,15 @@ public class InspectionUrlCustomRepositoryImpl implements InspectionUrlCustomRep
     }
 
     @Override
+    public List<InspectionUrl> findParentByMemberId(Long memberId) {
+        return em.createQuery("SELECT iu FROM InspectionUrl iu " +
+                        "WHERE iu.member.id = :memberId " +
+                        "AND iu.parent IS NULL", InspectionUrl.class)
+                .setParameter("memberId", memberId)
+                .getResultList();
+    }
+
+    @Override
     public boolean existsByUrlAndMemberId(String url, Long memberId) {
         Long count = em.createQuery("SELECT COUNT(iu) FROM InspectionUrl iu " +
                         "WHERE iu.member.id = :memberId " +
