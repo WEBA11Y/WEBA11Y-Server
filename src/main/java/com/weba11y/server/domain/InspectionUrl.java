@@ -3,6 +3,7 @@ package com.weba11y.server.domain;
 
 import com.weba11y.server.domain.common.BaseEntity;
 import com.weba11y.server.domain.enums.InspectionStatus;
+import com.weba11y.server.dto.InspectionUrl.InspectionUrlParentOnlyResDto;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlRequestDto;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlResponseDto;
 import jakarta.persistence.*;
@@ -45,7 +46,7 @@ public class InspectionUrl extends BaseEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToMany(mappedBy = "inspection_url", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "inspectionUrl", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InspectionResult> inspectionResults = new ArrayList<>();
 
     @Builder
@@ -99,6 +100,15 @@ public class InspectionUrl extends BaseEntity {
                         .toList() : null)
                 .createDate(this.getCreateDate())
                 .updateDate(this.getUpdateDate())
+                .build();
+    }
+
+    public InspectionUrlParentOnlyResDto toParentDto(){
+        return InspectionUrlParentOnlyResDto.builder()
+                .id(this.id)
+                .summary(this.summary)
+                .url(this.url)
+                .status(this.status)
                 .build();
     }
 

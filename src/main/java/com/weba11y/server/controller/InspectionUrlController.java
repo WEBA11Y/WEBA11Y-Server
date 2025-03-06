@@ -2,6 +2,7 @@ package com.weba11y.server.controller;
 
 
 import com.weba11y.server.domain.Member;
+import com.weba11y.server.dto.InspectionUrl.InspectionUrlParentOnlyResDto;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlRequestDto;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlResponseDto;
 import com.weba11y.server.service.AuthService;
@@ -46,7 +47,7 @@ public class InspectionUrlController {
     // 모든 URL 조회
     @GetMapping("/api/v1/urls")
     @Operation(summary = "등록된 모든 상위 URL 조회", description = "회원이 등록한 모든 상위 URL을 조회합니다.")
-    public ResponseEntity<List<InspectionUrlResponseDto>> getAllUrl(Principal principal) {
+    public ResponseEntity<List<InspectionUrlParentOnlyResDto>> getAllUrl(Principal principal) {
         return ResponseEntity.ok().body(inspectionUrlService.retrieveParentUrl(getMemberId(principal)));
     }
 

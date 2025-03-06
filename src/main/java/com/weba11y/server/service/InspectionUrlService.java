@@ -1,6 +1,7 @@
 package com.weba11y.server.service;
 
 import com.weba11y.server.domain.Member;
+import com.weba11y.server.dto.InspectionUrl.InspectionUrlParentOnlyResDto;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlRequestDto;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlResponseDto;
 
@@ -12,7 +13,7 @@ public interface InspectionUrlService {
 
     List<InspectionUrlResponseDto> retrieveAll(Long memberId);
 
-    List<InspectionUrlResponseDto> retrieveParentUrl(Long memberId);
+    List<InspectionUrlParentOnlyResDto> retrieveParentUrl(Long memberId);
     List<InspectionUrlResponseDto> retrieveChildUrl(Long memberId, Long parentUrlId);
 
     InspectionUrlResponseDto retrieveUrl(Long urlId, Long memberId);

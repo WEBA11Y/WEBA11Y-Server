@@ -2,6 +2,7 @@ package com.weba11y.server.service.implement;
 
 import com.weba11y.server.domain.InspectionUrl;
 import com.weba11y.server.domain.Member;
+import com.weba11y.server.dto.InspectionUrl.InspectionUrlParentOnlyResDto;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlRequestDto;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlResponseDto;
 import com.weba11y.server.exception.custom.DuplicateFieldException;
@@ -105,9 +106,9 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     }
 
     @Override
-    public List<InspectionUrlResponseDto> retrieveParentUrl(Long memberId) {
+    public List<InspectionUrlParentOnlyResDto> retrieveParentUrl(Long memberId) {
         return repository.findParentByMemberId(memberId)
-                .stream().map(url -> url.toDto()).toList();
+                .stream().map(url -> url.toParentDto()).toList();
     }
 
     @Override
