@@ -3,7 +3,7 @@ package com.weba11y.server.service;
 
 import com.weba11y.server.domain.InspectionUrl;
 import com.weba11y.server.domain.Member;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlRequestDto;
+import com.weba11y.server.dto.InspectionUrl.InspectionUrlDto;
 import com.weba11y.server.repository.InspectionUrlRepository;
 import com.weba11y.server.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +19,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.List;
@@ -87,7 +86,7 @@ public class InspectionUrlServiceImplTest {
     @DisplayName("URL 등록")
     void URL_등록() {
         // given
-        InspectionUrlRequestDto newUrlDto = InspectionUrlRequestDto.builder()
+        InspectionUrlDto.Request newUrlDto = InspectionUrlDto.Request.builder()
                 .summary("Naver")
                 .url("https://www.naver.com")
                 .build();
@@ -104,7 +103,7 @@ public class InspectionUrlServiceImplTest {
     @DisplayName("잘못된 형식의 URL 등록")
     void 잘못된_URL_등록() {
         // given
-        InspectionUrlRequestDto dto = InspectionUrlRequestDto.builder()
+        InspectionUrlDto.Request dto = InspectionUrlDto.Request.builder()
                 .summary("Naver")
                 .url("www.naver.com") // 잘못된 URL
                 .build();
@@ -126,7 +125,7 @@ public class InspectionUrlServiceImplTest {
     @DisplayName("자식 URL 등록")
     void Child_URL_등록() {
         // given
-        InspectionUrlRequestDto childUrl = InspectionUrlRequestDto.builder()
+        InspectionUrlDto.Request childUrl = InspectionUrlDto.Request.builder()
                 .summary("Naver")
                 .url("https://www.naver.com")
                 .parentId(parentUrl.getId())

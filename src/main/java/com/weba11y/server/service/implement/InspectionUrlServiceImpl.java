@@ -2,9 +2,7 @@ package com.weba11y.server.service.implement;
 
 import com.weba11y.server.domain.InspectionUrl;
 import com.weba11y.server.domain.Member;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlParentOnlyResDto;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlRequestDto;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlResponseDto;
+import com.weba11y.server.dto.InspectionUrl.InspectionUrlDto;
 import com.weba11y.server.exception.custom.DuplicateFieldException;
 import com.weba11y.server.exception.custom.InvalidateTokenException;
 import com.weba11y.server.repository.InspectionUrlRepository;
@@ -33,7 +31,7 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
 
     @Transactional
     @Override
-    public InspectionUrlResponseDto saveUrl(InspectionUrlRequestDto dto, Member member) {
+    public InspectionUrlDto saveUrl(InspectionUrlDto.Request dto, Member member) {
         // 이미 등록된 URL 인지 확인
         isExistsInspectionUrl(dto.getUrl(), member.getId());
         try {
@@ -78,7 +76,7 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
 
     @Transactional
     @Override
-    public InspectionUrlResponseDto updateUrl(InspectionUrlRequestDto requestDto, Long urlId) {
+    public InspectionUrlDto updateUrl(InspectionUrlDto.Request requestDto, Long urlId) {
         InspectionUrl url = retrieveUrlById(urlId);
         url.update(requestDto);
         return url.toDto();
@@ -100,25 +98,25 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     }
 
     @Override
-    public List<InspectionUrlResponseDto> retrieveAll(Long memberId) {
+    public List<InspectionUrlDto.Response> retrieveAll(Long memberId) {
         return repository.findAllByMemberId(memberId)
-                .stream().map(url -> url.toDto()).toList();
+                .stream().map(url -> url.toDto().toResponse()).toList();
     }
 
     @Override
-    public List<InspectionUrlParentOnlyResDto> retrieveParentUrl(Long memberId) {
+    public List<InspectionUrlDto.ParentOnlyResponse> retrieveParentUrl(Long memberId) {
         return repository.findParentByMemberId(memberId)
                 .stream().map(url -> url.toParentDto()).toList();
     }
 
     @Override
-    public List<InspectionUrlResponseDto> retrieveChildUrl(Long memberId, Long parentUrlId) {
+    public List<InspectionUrlDto> retrieveChildUrl(Long memberId, Long parentUrlId) {
         return repository.findAllByMemberIdAndParentId(memberId, parentUrlId)
                 .stream().map(url -> url.toDto()).toList();
     }
 
     @Override
-    public InspectionUrlResponseDto retrieveUrl(Long urlId, Long memberId) {
+    public InspectionUrlDto retrieveUrl(Long urlId, Long memberId) {
         return repository.findByIdAndMemberId(urlId, memberId).orElseThrow(
                 () -> new NoSuchElementException("해당 URL을 찾을 수 없습니다.")
         ).toDto();

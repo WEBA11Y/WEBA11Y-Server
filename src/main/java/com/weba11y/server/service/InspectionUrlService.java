@@ -1,24 +1,22 @@
 package com.weba11y.server.service;
 
 import com.weba11y.server.domain.Member;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlParentOnlyResDto;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlRequestDto;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlResponseDto;
+import com.weba11y.server.dto.InspectionUrl.InspectionUrlDto;
 
 import java.util.List;
 
 public interface InspectionUrlService {
 
-    InspectionUrlResponseDto saveUrl(InspectionUrlRequestDto dto, Member member);
+    InspectionUrlDto saveUrl(InspectionUrlDto.Request request, Member member);
 
-    List<InspectionUrlResponseDto> retrieveAll(Long memberId);
+    List<InspectionUrlDto.Response> retrieveAll(Long memberId);
 
-    List<InspectionUrlParentOnlyResDto> retrieveParentUrl(Long memberId);
-    List<InspectionUrlResponseDto> retrieveChildUrl(Long memberId, Long parentUrlId);
+    List<InspectionUrlDto.ParentOnlyResponse> retrieveParentUrl(Long memberId);
+    List<InspectionUrlDto> retrieveChildUrl(Long memberId, Long parentUrlId);
 
-    InspectionUrlResponseDto retrieveUrl(Long urlId, Long memberId);
+    InspectionUrlDto retrieveUrl(Long urlId, Long memberId);
 
-    InspectionUrlResponseDto updateUrl(InspectionUrlRequestDto requestDto, Long urlId);
+    InspectionUrlDto updateUrl(InspectionUrlDto.Request requestDto, Long urlId);
 
     String deleteUrl(Long urlId, Long memberId);
 

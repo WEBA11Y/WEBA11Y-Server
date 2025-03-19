@@ -3,9 +3,7 @@ package com.weba11y.server.domain;
 
 import com.weba11y.server.domain.common.BaseEntity;
 import com.weba11y.server.domain.enums.InspectionStatus;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlParentOnlyResDto;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlRequestDto;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlResponseDto;
+import com.weba11y.server.dto.InspectionUrl.InspectionUrlDto;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
@@ -88,8 +86,8 @@ public class InspectionUrl extends BaseEntity {
         }
     }
 
-    public InspectionUrlResponseDto toDto() {
-        return InspectionUrlResponseDto.builder()
+    public InspectionUrlDto toDto() {
+        return InspectionUrlDto.builder()
                 .id(this.id)
                 .summary(this.summary)
                 .url(this.url)
@@ -100,11 +98,12 @@ public class InspectionUrl extends BaseEntity {
                         .toList() : null)
                 .createDate(this.getCreateDate())
                 .updateDate(this.getUpdateDate())
+                .deleteDate(this.getDeleteDate())
                 .build();
     }
 
-    public InspectionUrlParentOnlyResDto toParentDto(){
-        return InspectionUrlParentOnlyResDto.builder()
+    public InspectionUrlDto.ParentOnlyResponse toParentDto() {
+        return InspectionUrlDto.ParentOnlyResponse.builder()
                 .id(this.id)
                 .summary(this.summary)
                 .url(this.url)
@@ -112,7 +111,7 @@ public class InspectionUrl extends BaseEntity {
                 .build();
     }
 
-    public void update(InspectionUrlRequestDto requestDto) {
+    public void update(InspectionUrlDto.Request requestDto) {
         this.summary = requestDto.getSummary();
         this.url = requestDto.getUrl();
         onUpdate();

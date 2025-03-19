@@ -30,8 +30,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'javax.xml.bind:jaxb-api:2.3.0'
+    implementation 'io.projectreactor:reactor-core'
+    // WebSocket
+    // implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
     // https://mvnrepository.com/artifact/io.github.cdimascio/dotenv-java
     implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+
     // JWT
     implementation 'io.jsonwebtoken:jjwt:0.9.1'
 
@@ -57,6 +62,7 @@ dependencies {
     testImplementation 'org.mockito:mockito-junit-jupiter:5.14.2'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
