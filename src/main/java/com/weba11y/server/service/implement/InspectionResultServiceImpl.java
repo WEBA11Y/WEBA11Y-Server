@@ -9,7 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -23,12 +25,14 @@ public class InspectionResultServiceImpl implements InspectionResultService {
     @Override
     public List<LocalDate> retrieveInspectionResultDateByUrlId(Long urlId) {
         try {
-            return inspectionResultRepository.findCreateDatesByInspectionUrlId(urlId);
-        }catch (Exception e){
-            log.error("기록 날짜 가져오다 실패함 , {}", e.getMessage());
-            return null;
+            return Optional.ofNullable(inspectionResultRepository.findCreateDatesByInspectionUrlId(urlId))
+                    .orElseGet(Collections::emptyList);
+        } catch (Exception e) {
+            log.error("기록 날짜 가져오는 중 오류 발생 - urlId: {}, error: ", urlId, e);
+            return Collections.emptyList();
         }
     }
+
 
 
     @Override
