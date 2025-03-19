@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class InspectionResultsResponseDto {
@@ -17,8 +16,8 @@ public class InspectionResultsResponseDto {
 
     private List<InspectionResultDto> resultList = new ArrayList<>();
 
-    public void addResult(InspectionResultDto inspectionResultDto){
+   /* public void addResult(InspectionResultDto inspectionResultDto){
         this.resultList.add(inspectionResultDto);
         status[inspectionResultDto.getNumber()] = 1;
-    }
+    }*/
 }

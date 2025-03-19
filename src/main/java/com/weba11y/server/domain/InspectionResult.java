@@ -24,12 +24,15 @@ public class InspectionResult extends BaseEntity {
     @Column(nullable = false)
     private String summary;
 
+    @Column(nullable = false)
+    private String codeLine;
+
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inspection_url_id")
     private InspectionUrl inspectionUrl;
 
     public InspectionResultDto toDto(){
         return InspectionResultDto.builder()
-                .id(this.id)
                 .inspectionItems(this.inspectionItems)
                 .summary(this.summary)
                 .build();
