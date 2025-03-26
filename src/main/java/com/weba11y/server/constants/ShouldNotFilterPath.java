@@ -9,7 +9,8 @@ public class ShouldNotFilterPath {
             "/swagger-ui/**",
             "/api/v1/join",
             "/api/v1/login",
-            "/api/v1/join/**"
+            "/api/v1/join/**",
+            "/api/v1/reissuing-token"
     );
 }
 
