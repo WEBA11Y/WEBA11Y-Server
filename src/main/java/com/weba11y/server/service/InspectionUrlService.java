@@ -13,6 +13,7 @@ public interface InspectionUrlService {
     List<InspectionUrlDto.Response> retrieveAll(Long memberId);
 
     List<InspectionUrlDto.ParentOnlyResponse> retrieveParentUrl(Long memberId);
+    List<InspectionUrlDto.ParentOnlyResponse> retrieveParentUrl(Long memberId, int page);
     List<InspectionUrlDto> retrieveChildUrl(Long memberId, Long parentUrlId);
 
     InspectionUrlDto retrieveUrl(Long urlId, Long memberId);

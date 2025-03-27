@@ -9,6 +9,8 @@ import com.weba11y.server.jpa.repository.InspectionUrlRepository;
 import com.weba11y.server.service.InspectionUrlService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,9 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     private static final String URL_REGEX = "^(https?://)(www\\.)?([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}(/.*)?$";
 
     private static final Pattern URL_PATTERN = Pattern.compile(URL_REGEX);
+
+    // 페이징 사이즈
+    private static final int SIZE = 10;
 
     @Transactional(value = "transactionManager")
     @Override
@@ -87,7 +92,7 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     @Transactional(value = "transactionManager")
     public HttpStatus deleteUrl(List<Long> urlIds, Long memberId) {
         for (Long urlId : urlIds) {
-            InspectionUrl url = retrieveUrlByIdAndMemberId(urlId,memberId);
+            InspectionUrl url = retrieveUrlByIdAndMemberId(urlId, memberId);
             try {
                 url.delete();
             } catch (Exception e) {
@@ -114,6 +119,13 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     @Override
     public List<InspectionUrlDto.ParentOnlyResponse> retrieveParentUrl(Long memberId) {
         return repository.findParentByMemberId(memberId)
+                .stream().map(url -> url.toParentDto()).toList();
+    }
+
+    @Override
+    public List<InspectionUrlDto.ParentOnlyResponse> retrieveParentUrl(Long memberId, int page) {
+        Pageable pageable = PageRequest.of(page, SIZE);
+        return repository.findParentInspectionUrlsByMemberId(memberId, pageable)
                 .stream().map(url -> url.toParentDto()).toList();
     }
 
