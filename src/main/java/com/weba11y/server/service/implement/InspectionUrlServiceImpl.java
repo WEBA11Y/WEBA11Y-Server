@@ -9,6 +9,7 @@ import com.weba11y.server.jpa.repository.InspectionUrlRepository;
 import com.weba11y.server.service.InspectionUrlService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,19 +84,26 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     }
 
     @Override
-    public String deleteUrl(Long urlId, Long memberId) {
-        InspectionUrl url = retrieveUrlById(urlId);
-        if (url.getMember().getId() != memberId)
-            throw new InvalidateTokenException("권한이 없습니다");
-        try {
-            url.delete();
-            return "URL을 정상적으로 삭제했습니다. \n삭제된 URL은 30일간 보관됩니다.";
-        } catch (Exception e) {
-            log.error("URL 삭제 실패 : {}", e.getMessage());
-            throw new RuntimeException("URL 삭제를 실패했습니다.");
+    @Transactional(value = "transactionManager")
+    public HttpStatus deleteUrl(List<Long> urlIds, Long memberId) {
+        for (Long urlId : urlIds) {
+            InspectionUrl url = retrieveUrlByIdAndMemberId(urlId,memberId);
+            try {
+                url.delete();
+            } catch (Exception e) {
+                log.error("URL ID = " + urlId + " 삭제 실패 : {}", e.getMessage());
+                return HttpStatus.INTERNAL_SERVER_ERROR;
+            }
         }
-
+        return HttpStatus.OK;
     }
+
+    private InspectionUrl retrieveUrlByIdAndMemberId(Long urlId, Long memberId) {
+        return repository.findByIdAndMemberId(urlId, memberId).orElseThrow(
+                () -> new NoSuchElementException("URL을 찾을 수 없습니다.")
+        );
+    }
+
 
     @Override
     public List<InspectionUrlDto.Response> retrieveAll(Long memberId) {

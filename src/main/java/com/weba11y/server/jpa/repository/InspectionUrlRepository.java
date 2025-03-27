@@ -7,6 +7,5 @@ import java.util.List;
 
 @Repository
 public interface InspectionUrlRepository extends JpaRepository<InspectionUrl, Long>, InspectionUrlCustomRepository {
-
     List<InspectionUrl> findAllByMemberIdAndParentId(Long memberId, Long parentId);
 }

@@ -2,6 +2,7 @@ package com.weba11y.server.service;
 
 import com.weba11y.server.domain.Member;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlDto;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public interface InspectionUrlService {
 
     InspectionUrlDto updateUrl(InspectionUrlDto.Request requestDto, Long urlId);
 
-    String deleteUrl(Long urlId, Long memberId);
+    HttpStatus deleteUrl(List<Long> urlId, Long memberId);
 
     boolean validateUrl(String url);
 }

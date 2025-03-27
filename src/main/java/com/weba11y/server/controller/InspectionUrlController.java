@@ -65,10 +65,10 @@ public class InspectionUrlController {
     }
 
     // URL 삭제
-    @DeleteMapping("/api/v1/urls/{id}")
+    @DeleteMapping("/api/v1/urls")
     @Operation(summary = "등록된 URL 삭제", description = "URL 정보를 삭제합니다.")
-    public ResponseEntity<String> deleteUrl(@PathVariable("id") Long urlId, Principal principal) {
-        return ResponseEntity.ok().body(inspectionUrlService.deleteUrl(urlId, getMemberId(principal)));
+    public ResponseEntity<Void> deleteUrl(@RequestBody List<Long> urlIds, Principal principal) {
+        return ResponseEntity.status(inspectionUrlService.deleteUrl(urlIds, getMemberId(principal))).build();
     }
 
     private Long getMemberId(Principal principal) {
