@@ -3,10 +3,10 @@ package com.weba11y.server.configuration;
 
 import com.weba11y.server.filter.JwtFilter;
 import com.weba11y.server.service.AuthService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,6 +19,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
@@ -39,9 +40,11 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .httpBasic(httpBasic -> httpBasic.disable()) // httpBasic 기본 설정
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 추가
                 .csrf(csrf -> csrf.disable()) // csrf 기본 설정
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v1/member/**").hasRole("USER")
+                        .requestMatchers("/api/v1/urls/**").hasRole("USER")
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(new JwtFilter(authService, secret), UsernamePasswordAuthenticationFilter.class) // Filter 동작 이전에 JWT Filter동작

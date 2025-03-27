@@ -27,7 +27,7 @@ import static com.weba11y.server.util.CookieUtil.*;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name="회원 및 인증 API", description = "회원 관리 및 인증 관련 API")
+@Tag(name = "회원 및 인증 API", description = "회원 관리 및 인증 관련 API")
 public class AuthController {
 
     private final AuthService authService;
@@ -64,7 +64,7 @@ public class AuthController {
 
     @DeleteMapping("/api/v1/member")
     @Operation(summary = "회원 탈퇴", description = "회원을 비활성화 하고 30일 이후에 영구적으로 삭제합니다.")
-    public ResponseEntity<?> deleteMember(Principal principal){
+    public ResponseEntity<?> deleteMember(Principal principal) {
         Long memberId = getMemberId(principal);
         return ResponseEntity.ok().body(authService.deleteMember(memberId));
     }
@@ -72,14 +72,18 @@ public class AuthController {
 
     @GetMapping("/api/v1/join/check-userId")
     @Operation(summary = "아이디 중복 조회", description = "중복된 아이디가 있는지 확인합니다.")
-    public ResponseEntity<Boolean> checkUsernameExists(@RequestParam("userId") @Valid String userId) {
-        return ResponseEntity.ok().body(authService.isExistsUserId(userId));
+    public ResponseEntity<Void> checkUserIdExists(@RequestParam("userId") @Valid String userId) {
+        return authService.isExistsUserId(userId)
+                ? ResponseEntity.status(HttpStatus.CONFLICT).build()
+                : ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @GetMapping("/api/v1/join/check-phone")
     @Operation(summary = "전화번호 중복 조회", description = "중복된 전화번호가 있는지 확인합니다.")
-    public ResponseEntity<Boolean> checkPhoneNumExists(@RequestParam("phone") @Valid String phoneNum) {
-        return ResponseEntity.ok().body(authService.isExistsPhoneNum(phoneNum));
+    public ResponseEntity<Void> checkPhoneNumExists(@RequestParam("phone") @Valid String phoneNum) {
+        return authService.isExistsPhoneNum(phoneNum)
+                ? ResponseEntity.status(HttpStatus.CONFLICT).build()
+                : ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @GetMapping("/api/v1/reissuing-token")
@@ -99,6 +103,7 @@ public class AuthController {
             CookieUtil.deleteCookie(response, refreshTokenCookie); // Refresh Token 삭제 -> Refresh Token의 정보 소멸
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
     private Long getMemberId(Principal principal) {
         return principal instanceof UsernamePasswordAuthenticationToken
                 ? (Long) ((UsernamePasswordAuthenticationToken) principal).getPrincipal()

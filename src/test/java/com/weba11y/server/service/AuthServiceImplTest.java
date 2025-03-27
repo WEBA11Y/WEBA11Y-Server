@@ -3,7 +3,7 @@ package com.weba11y.server.service;
 
 import com.weba11y.server.domain.Member;
 import com.weba11y.server.dto.member.LoginDto;
-import com.weba11y.server.repository.MemberRepository;
+import com.weba11y.server.jpa.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -61,8 +61,8 @@ public class AuthServiceImplTest {
                 .password("moyada")
                 .build();
         // when
-        Member findMember1 = getMemberByUsername(loginDto.getUserId());
-        Member findMember2 = getMemberByUsername(fakeDto1.getUserId());
+        Member findMember1 = getMemberByUserId(loginDto.getUserId());
+        Member findMember2 = getMemberByUserId(fakeDto1.getUserId());
 
         // then
         // result 1
@@ -70,11 +70,11 @@ public class AuthServiceImplTest {
         // result 2
         assertFalse(isMatchPassword(fakeDto1, findMember2));
         // result 3
-        assertThrows(NoSuchElementException.class, () -> getMemberByUsername(fakeDto2.getUserId()));
+        assertThrows(NoSuchElementException.class, () -> getMemberByUserId(fakeDto2.getUserId()));
     }
 
-    private Member getMemberByUsername(String userId) {
-        return repository.findByUsername(userId)
+    private Member getMemberByUserId(String userId) {
+        return repository.findByUserId(userId)
                 .orElseThrow(()
                         -> new NoSuchElementException("존재하지 않는 회원입니다"));
     }

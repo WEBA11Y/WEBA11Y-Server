@@ -2,12 +2,16 @@ package com.weba11y.server.domain;
 
 
 import com.weba11y.server.domain.common.BaseEntity;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlResponseDto;
+import com.weba11y.server.domain.enums.InspectionStatus;
+import com.weba11y.server.dto.InspectionUrl.InspectionUrlDto;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -20,25 +24,32 @@ public class InspectionUrl extends BaseEntity {
     private Long id;
 
     @Column(nullable = false, length = 255)
-    private String title;
+    private String summary;
 
     @Column(nullable = false, length = 2048)
     private String url;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    private InspectionStatus status = InspectionStatus.PENDING;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private InspectionUrl parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<InspectionUrl> child = new ArrayList<>();
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @BatchSize(size = 10)
+    private Set<InspectionUrl> child = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
+    @OneToMany(mappedBy = "inspectionUrl", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InspectionResult> inspectionResults = new ArrayList<>();
+
     @Builder
-    public InspectionUrl(String title, String url, Member member) {
-        this.title = title;
+    public InspectionUrl(String summary, String url, Member member) {
+        this.summary = summary;
         this.url = url;
         this.member = member;
     }
@@ -49,6 +60,22 @@ public class InspectionUrl extends BaseEntity {
 
     public void addParentUrl(InspectionUrl parent) {
         this.parent = parent;
+        parent.addChildUrl(this);
+    }
+
+    public void addResult(InspectionResult inspectionResult) {
+        this.inspectionResults.add(inspectionResult);
+    }
+
+    public void updateStatus(InspectionStatus status) {
+        this.status = status;
+    }
+
+    public void delete() {
+        status = InspectionStatus.HIDE;
+        if (!child.isEmpty())
+            child.stream().forEach(child -> child.delete());
+        onDelete();
     }
 
     public void removeChildUrl(InspectionUrl child) {
@@ -59,14 +86,34 @@ public class InspectionUrl extends BaseEntity {
         }
     }
 
-    public InspectionUrlResponseDto toDto() {
-        return InspectionUrlResponseDto.builder()
+    public InspectionUrlDto toDto() {
+        return InspectionUrlDto.builder()
                 .id(this.id)
-                .title(this.title)
+                .summary(this.summary)
                 .url(this.url)
-                .parentId(this.parent.getId())
+                .status(this.status)
+                .parentId(this.parent != null ? this.parent.getId() : null)
+                .child(this.child != null ? this.child.stream()
+                        .map(InspectionUrl::toDto)
+                        .toList() : null)
                 .createDate(this.getCreateDate())
                 .updateDate(this.getUpdateDate())
+                .deleteDate(this.getDeleteDate())
                 .build();
+    }
+
+    public InspectionUrlDto.ParentOnlyResponse toParentDto() {
+        return InspectionUrlDto.ParentOnlyResponse.builder()
+                .id(this.id)
+                .summary(this.summary)
+                .url(this.url)
+                .status(this.status)
+                .build();
+    }
+
+    public void update(InspectionUrlDto.Request requestDto) {
+        this.summary = requestDto.getSummary();
+        this.url = requestDto.getUrl();
+        onUpdate();
     }
 }
