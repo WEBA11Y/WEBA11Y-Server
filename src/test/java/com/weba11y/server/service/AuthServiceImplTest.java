@@ -3,7 +3,7 @@ package com.weba11y.server.service;
 
 import com.weba11y.server.domain.Member;
 import com.weba11y.server.dto.member.LoginDto;
-import com.weba11y.server.repository.MemberRepository;
+import com.weba11y.server.jpa.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

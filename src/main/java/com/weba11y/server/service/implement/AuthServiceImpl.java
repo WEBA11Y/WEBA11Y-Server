@@ -6,7 +6,7 @@ import com.weba11y.server.dto.member.*;
 import com.weba11y.server.exception.custom.DuplicateFieldException;
 import com.weba11y.server.exception.custom.ExpiredRefreshTokenException;
 import com.weba11y.server.exception.custom.ExpiredTokenException;
-import com.weba11y.server.repository.MemberRepository;
+import com.weba11y.server.jpa.repository.MemberRepository;
 import com.weba11y.server.service.AuthService;
 import com.weba11y.server.util.CookieUtil;
 import com.weba11y.server.util.JwtUtil;
@@ -26,7 +26,7 @@ import static com.weba11y.server.constants.CookieName.REFRESH_TOKEN_COOKIE;
 
 @Slf4j
 @Service
-@Transactional(readOnly = true)
+@Transactional(value = "transactionManager", readOnly = true)
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
     private final MemberRepository repository;
@@ -43,7 +43,7 @@ public class AuthServiceImpl implements AuthService {
     private Long refreshTokenExpiration;
 
     @Override
-    @Transactional
+    @Transactional(value = "transactionManager")
     public JoinResultDto join(JoinDto joinDto) {
         // Unique 값 검사
         validateUniqueMemberInfo(joinDto);
@@ -87,7 +87,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(value = "transactionManager")
     public MemberDto updateMember(Long memberId, UpdateMemberDto updateMemberDto) {
         Member member = retrieveMember(memberId);
         if (isExistsPhoneNum(updateMemberDto.getPhoneNum())) {
@@ -98,7 +98,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(value = "transactionManager")
     public String deleteMember(Long memberId) {
         Member member = retrieveMember(memberId);
         try {
