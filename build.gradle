@@ -31,8 +31,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'javax.xml.bind:jaxb-api:2.3.0'
     implementation 'io.projectreactor:reactor-core'
-    // WebSocket
-    // implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    // R2DBC core
+    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+
+    // R2DBC MariaDB driver
+    implementation 'org.mariadb:r2dbc-mariadb:1.2.0'
 
     // https://mvnrepository.com/artifact/io.github.cdimascio/dotenv-java
     implementation 'io.github.cdimascio:dotenv-java:3.0.0'
@@ -54,12 +58,16 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'com.h2database:h2'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
     annotationProcessor 'org.projectlombok:lombok'
 
     // https://mvnrepository.com/artifact/org.mockito/mockito-core
     testImplementation 'org.mockito:mockito-core:5.14.2'
     // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
     testImplementation 'org.mockito:mockito-junit-jupiter:5.14.2'
+
+    // R2DBC 테스트 지원 (optional)
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
