@@ -1,7 +1,7 @@
-package com.weba11y.server.repository.implement;
+package com.weba11y.server.jpa.repository.implement;
 
 import com.weba11y.server.domain.InspectionUrl;
-import com.weba11y.server.repository.InspectionUrlCustomRepository;
+import com.weba11y.server.jpa.repository.InspectionUrlCustomRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;

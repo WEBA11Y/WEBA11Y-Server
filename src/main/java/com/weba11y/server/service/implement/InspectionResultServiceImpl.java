@@ -2,11 +2,12 @@ package com.weba11y.server.service.implement;
 
 import com.weba11y.server.domain.InspectionResult;
 import com.weba11y.server.dto.InspectionResults.InspectionResultDto;
-import com.weba11y.server.repository.InspectionResultRepository;
+import com.weba11y.server.jpa.repository.InspectionResultRepository;
 import com.weba11y.server.service.InspectionResultService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -22,7 +23,9 @@ public class InspectionResultServiceImpl implements InspectionResultService {
 
     private final InspectionResultRepository inspectionResultRepository;
 
+
     @Override
+    @Transactional(value = "transactionManager", readOnly = true)
     public List<LocalDate> retrieveInspectionResultDateByUrlId(Long urlId) {
         try {
             return Optional.ofNullable(inspectionResultRepository.findCreateDatesByInspectionUrlId(urlId))
@@ -33,13 +36,14 @@ public class InspectionResultServiceImpl implements InspectionResultService {
         }
     }
 
-
-
     @Override
+    @Transactional(value = "transactionManager", readOnly = true)
     public List<InspectionResultDto> retrieveResultsByUrlIdAndDate(Long urlId, LocalDate date) {
         return inspectionResultRepository.findInspectionResultsByUrlIdAndCreateDate(urlId, date)
                 .stream()
                 .map(InspectionResult::toDto)
                 .collect(Collectors.toList());
     }
+
+
 }

@@ -1,6 +1,6 @@
-package com.weba11y.server.repository.implement;
+package com.weba11y.server.jpa.repository.implement;
 
-import com.weba11y.server.repository.InspectionResultCustomRepository;
+import com.weba11y.server.jpa.repository.InspectionResultCustomRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

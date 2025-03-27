@@ -5,7 +5,7 @@ import com.weba11y.server.domain.Member;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlDto;
 import com.weba11y.server.exception.custom.DuplicateFieldException;
 import com.weba11y.server.exception.custom.InvalidateTokenException;
-import com.weba11y.server.repository.InspectionUrlRepository;
+import com.weba11y.server.jpa.repository.InspectionUrlRepository;
 import com.weba11y.server.service.InspectionUrlService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Service
-@Transactional(readOnly = true)
+@Transactional(value = "transactionManager", readOnly = true)
 @RequiredArgsConstructor
 public class InspectionUrlServiceImpl implements InspectionUrlService {
     private final InspectionUrlRepository repository;
@@ -29,7 +29,7 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
 
     private static final Pattern URL_PATTERN = Pattern.compile(URL_REGEX);
 
-    @Transactional
+    @Transactional(value = "transactionManager")
     @Override
     public InspectionUrlDto saveUrl(InspectionUrlDto.Request dto, Member member) {
         // 이미 등록된 URL 인지 확인
@@ -74,7 +74,7 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     }
 
 
-    @Transactional
+    @Transactional(value = "transactionManager")
     @Override
     public InspectionUrlDto updateUrl(InspectionUrlDto.Request requestDto, Long urlId) {
         InspectionUrl url = retrieveUrlById(urlId);
