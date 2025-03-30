@@ -25,15 +25,6 @@ public class InspectionUrlController {
     private final InspectionUrlService inspectionUrlService;
     private final AuthService authService;
 
-    // URL 검증
-    @GetMapping("/api/v1/urls/validate")
-    @Operation(summary = "URL 검증", description = "URL이 실제로 존재하고, 올바른 형식인지 검증합니다.")
-    public ResponseEntity<String> validateUrl(@RequestParam @Valid String url) {
-        return inspectionUrlService.validateUrl(url)
-                ? ResponseEntity.status(HttpStatus.OK).body("올바른 URL 입니다.")
-                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("잘못된 URL 형식입니다.");
-    }
-
     // URL 등록
     @PostMapping("/api/v1/urls")
     @Operation(summary = "URL 등록", description = "URL을 등록합니다. ( 상위 URL이 있다면 해당 URL의 ID값을 추가하세요. )")
@@ -45,8 +36,8 @@ public class InspectionUrlController {
     // 모든 URL 조회
     @GetMapping("/api/v1/urls")
     @Operation(summary = "등록된 모든 상위 URL 조회", description = "회원이 등록한 모든 상위 URL을 조회합니다.")
-    public ResponseEntity<List<InspectionUrlDto.ParentOnlyResponse>> getAllUrl(Principal principal) {
-        return ResponseEntity.ok().body(inspectionUrlService.retrieveParentUrl(getMemberId(principal)));
+    public ResponseEntity<List<InspectionUrlDto.ParentOnlyResponse>> getAllUrl(@RequestParam(defaultValue = "0") int page, Principal principal) {
+        return ResponseEntity.ok().body(inspectionUrlService.retrieveParentUrl(getMemberId(principal), page));
     }
 
     // URL 조회
@@ -60,7 +51,7 @@ public class InspectionUrlController {
     @PutMapping("/api/v1/urls/{id}")
     @Operation(summary = "등록된 URL 정보 수정", description = "URL의 정보를 수정합니다.")
     public ResponseEntity<InspectionUrlDto.Response> updateUrl(@PathVariable("id") Long urlId,
-                                       @RequestBody @Valid InspectionUrlDto.Request requestDto) {
+                                                               @RequestBody @Valid InspectionUrlDto.Request requestDto) {
         return ResponseEntity.ok().body(inspectionUrlService.updateUrl(requestDto, urlId).toResponse());
     }
 

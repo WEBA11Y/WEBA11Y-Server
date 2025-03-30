@@ -4,11 +4,15 @@ import com.weba11y.server.domain.InspectionUrl;
 import com.weba11y.server.domain.Member;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlDto;
 import com.weba11y.server.exception.custom.DuplicateFieldException;
+import com.weba11y.server.exception.custom.DuplicationUrlException;
+import com.weba11y.server.exception.custom.InvalidUrlException;
 import com.weba11y.server.exception.custom.InvalidateTokenException;
 import com.weba11y.server.jpa.repository.InspectionUrlRepository;
 import com.weba11y.server.service.InspectionUrlService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,11 +34,14 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
 
     private static final Pattern URL_PATTERN = Pattern.compile(URL_REGEX);
 
+    // 페이징 사이즈
+    private static final int SIZE = 10;
+
     @Transactional(value = "transactionManager")
     @Override
     public InspectionUrlDto saveUrl(InspectionUrlDto.Request dto, Member member) {
         // 이미 등록된 URL 인지 확인
-        isExistsInspectionUrl(dto.getUrl(), member.getId());
+        validateUrl(dto.getUrl(), member.getId());
         try {
             InspectionUrl newUrl;
             // 부모 URL 유무
@@ -51,11 +58,14 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
         }
     }
 
-    @Override
-    public boolean validateUrl(String url) {
-        return URL_PATTERN.matcher(url).matches()
-                ? doesUrlExist(url)
-                : false;
+    private void validateUrl(String url, Long memberId) {
+        if (!URL_PATTERN.matcher(url).matches() || !doesUrlExist(url)) {
+            throw new InvalidUrlException("URL의 형식이 올바르지 않거나 실제로 존재하지 않습니다.");
+        }
+        Long urlId = repository.findIdByMemberIdAndUrl(memberId, url).orElseGet(() -> -1L);
+        if (urlId != null && urlId > 0) {
+            throw new DuplicationUrlException("이미 등록된 URL 입니다.", urlId);
+        }
     }
 
 
@@ -87,7 +97,7 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     @Transactional(value = "transactionManager")
     public HttpStatus deleteUrl(List<Long> urlIds, Long memberId) {
         for (Long urlId : urlIds) {
-            InspectionUrl url = retrieveUrlByIdAndMemberId(urlId,memberId);
+            InspectionUrl url = retrieveUrlByIdAndMemberId(urlId, memberId);
             try {
                 url.delete();
             } catch (Exception e) {
@@ -118,6 +128,13 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     }
 
     @Override
+    public List<InspectionUrlDto.ParentOnlyResponse> retrieveParentUrl(Long memberId, int page) {
+        Pageable pageable = PageRequest.of(page, SIZE);
+        return repository.findParentInspectionUrlsByMemberId(memberId, pageable)
+                .stream().map(url -> url.toParentDto()).toList();
+    }
+
+    @Override
     public List<InspectionUrlDto> retrieveChildUrl(Long memberId, Long parentUrlId) {
         return repository.findAllByMemberIdAndParentId(memberId, parentUrlId)
                 .stream().map(url -> url.toDto()).toList();
@@ -134,11 +151,6 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
         return repository.findByUrlId(urlId).orElseThrow(
                 () -> new NoSuchElementException("해당 URL을 찾을 수 없습니다.")
         );
-    }
-
-    private void isExistsInspectionUrl(String url, Long memberId) {
-        if (repository.existsByUrlAndMemberId(url, memberId))
-            throw new DuplicateFieldException("이미 등록된 URL 입니다.");
     }
 
 }
