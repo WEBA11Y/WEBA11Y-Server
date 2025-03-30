@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface InspectionUrlRepository extends JpaRepository<InspectionUrl, Long>, InspectionUrlCustomRepository {
@@ -22,5 +23,9 @@ public interface InspectionUrlRepository extends JpaRepository<InspectionUrl, Lo
             "GROUP BY iu " +
             "ORDER BY COALESCE(MAX(ir.createDate), iu.updateDate) DESC") // 검사 결과 날짜 최신순 또는 URL updateDate 최신순
     Page<InspectionUrl> findParentInspectionUrlsByMemberId(@Param("memberId") Long memberId, Pageable pageable);
+
+
+    @Query("SELECT i.id FROM InspectionUrl i WHERE i.member.id = :memberId AND i.url = :url")
+    Optional<Long> findIdByMemberIdAndUrl(@Param("memberId") Long memberId, @Param("url") String url);
 
 }

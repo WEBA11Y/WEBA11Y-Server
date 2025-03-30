@@ -25,15 +25,6 @@ public class InspectionUrlController {
     private final InspectionUrlService inspectionUrlService;
     private final AuthService authService;
 
-    // URL 검증
-    @GetMapping("/api/v1/urls/validate")
-    @Operation(summary = "URL 검증", description = "URL이 실제로 존재하고, 올바른 형식인지 검증합니다.")
-    public ResponseEntity<String> validateUrl(@RequestParam @Valid String url) {
-        return inspectionUrlService.validateUrl(url)
-                ? ResponseEntity.status(HttpStatus.OK).body("올바른 URL 입니다.")
-                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("잘못된 URL 형식입니다.");
-    }
-
     // URL 등록
     @PostMapping("/api/v1/urls")
     @Operation(summary = "URL 등록", description = "URL을 등록합니다. ( 상위 URL이 있다면 해당 URL의 ID값을 추가하세요. )")

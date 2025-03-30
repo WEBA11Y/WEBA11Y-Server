@@ -55,29 +55,31 @@ class InitService { // 외부 클래스로 변경
         Member member = authService.retrieveMember(memberId);
         // 부모 URL 생성
         for (int i = 1; i <= 3; i++) {
-            InspectionUrlDto.Request parentUrlDto = InspectionUrlDto.Request.builder()
+            InspectionUrl parentUrl = InspectionUrl.builder()
                     .summary("ParentURL : " + i)
                     .url("https://www.parent" + i + ".com")
+                    .member(member)
                     .build();
-            Long parentId = inspectionUrlService.saveUrl(parentUrlDto, member).getId(); // 부모 ID 저장
+            InspectionUrl savedParentUrl = saveUrl(parentUrl); // 부모 ID 저장
             // 자식 URL 생성
             for (int j = 1; j <= 3; j++) {
-                InspectionUrlDto.Request childUrlDto = InspectionUrlDto.Request.builder()
+                InspectionUrl childUrl = InspectionUrl.builder()
                         .summary("ChildURL : " + j)
                         .url("https://www.parent" + i + ".com/child" + j)
-                        .parentId(parentId) // 부모 ID 사용
+                        .member(member)
                         .build();
-                inspectionUrlService.saveUrl(childUrlDto, member);
+                childUrl.addParentUrl(parentUrl);
+                saveUrl(childUrl);
             }
-
         }
-
-        InspectionUrlDto.Request childUrlDto = InspectionUrlDto.Request.builder()
-                .summary("ChildURL : " + 1234)
-                .url("https://www.parent" + 4123 + ".com/child" + 1234)
-                .parentId(3L) // 부모 ID 사용
-                .build();
-        inspectionUrlService.saveUrl(childUrlDto, member);
+        for (int i = 1; i <= 10; i++) {
+            InspectionUrl testUrl = InspectionUrl.builder()
+                    .summary("TestURL : " + i)
+                    .url("https://www.test" + i + ".com")
+                    .member(member)
+                    .build();
+            saveUrl(testUrl);
+        }
     }
 
     public void initInspectionResult() {
@@ -93,5 +95,9 @@ class InitService { // 외부 클래스로 변경
                     .build();
             inspectionResultRepository.save(result);
         }
+    }
+
+    private InspectionUrl saveUrl(InspectionUrl inspectionUrl) {
+        return inspectionUrlRepository.save(inspectionUrl);
     }
 }

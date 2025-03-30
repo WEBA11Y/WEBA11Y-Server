@@ -84,4 +84,5 @@ public class InspectionUrlCustomRepositoryImpl implements InspectionUrlCustomRep
                 .getSingleResult();
         return count > 0;
     }
+
 }
