@@ -69,6 +69,9 @@ dependencies {
     // R2DBC 테스트 지원 (optional)
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
+    // https://mvnrepository.com/artifact/io.r2dbc/r2dbc-h2
+    testImplementation 'io.r2dbc:r2dbc-h2:1.0.0.RELEASE'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

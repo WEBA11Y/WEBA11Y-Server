@@ -6,11 +6,13 @@ spring:
     console:
       enabled: true
   jpa:
+    hibernate:
+      ddl-auto: create-drop
     database: h2
     generate-ddl: off
   datasource:
     driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:testdb;MODE=MySQL;
+    url: jdbc:h2:mem:///testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL;
     username: SA
     password:
   sql:
@@ -25,7 +27,14 @@ spring:
       database: 9
   main:
     allow-bean-definition-overriding: true
-
+  r2dbc:
+    url: r2dbc:h2:mem:///testdb
+    username: sa
+    password:
+    flyway:
+      enabled: false  # H2에서는 flyway 사용 비활성화 추천
+    liquibase:
+      enabled: false  # H2에서는 liquibase 사용 비활성화 추천
 
 ## Logging
 logging:

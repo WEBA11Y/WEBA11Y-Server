@@ -11,6 +11,9 @@ import com.weba11y.server.jpa.repository.InspectionUrlRepository;
 import com.weba11y.server.service.InspectionUrlService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -42,19 +45,40 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     public InspectionUrlDto saveUrl(InspectionUrlDto.Request dto, Member member) {
         // 이미 등록된 URL 인지 확인
         validateUrl(dto.getUrl(), member.getId());
+        InspectionUrl newUrl;
+        // 부모 URL 유무
+        if (dto.getParentId() != null && dto.getParentId() > 0) {
+            InspectionUrl parentUrl = retrieveUrlById(dto.getParentId());
+            newUrl = dto.toEntity(parentUrl, member);
+        } else {
+            newUrl = dto.toEntity(member);
+        }
+        newUrl.addFavicon(findFavicon(dto.getUrl()));
         try {
-            InspectionUrl newUrl;
-            // 부모 URL 유무
-            if (dto.getParentId() != null && dto.getParentId() > 0) {
-                InspectionUrl parentUrl = retrieveUrlById(dto.getParentId());
-                newUrl = dto.toEntity(parentUrl, member);
-            } else {
-                newUrl = dto.toEntity(member);
-            }
             return repository.save(newUrl).toDto();
         } catch (Exception e) {
             log.error("URL 등록 실패 : {}", e.getMessage());
             throw new RuntimeException("URL 등록을 실패했습니다 : " + dto.getUrl());
+        }
+    }
+
+    private String findFavicon(String url) {
+        try {
+            Document doc = Jsoup.connect(url).get();
+            // <link rel="icon"> 태그 검색
+            Element iconLink = doc.selectFirst("link[rel~=(?i)icon]");
+            if (iconLink != null) {
+                String faviconUrl = iconLink.attr("href");
+                // 상대경로 처리
+                if (!faviconUrl.startsWith("http")) {
+                    return url + (faviconUrl.startsWith("/") ? "" : "/") + faviconUrl;
+                }
+                return faviconUrl;
+            }
+            // 기본 파비콘 경로
+            return url + "/favicon.ico";
+        } catch (IOException e) {
+            return null; // 파비콘을 찾지 못한 경우
         }
     }
 

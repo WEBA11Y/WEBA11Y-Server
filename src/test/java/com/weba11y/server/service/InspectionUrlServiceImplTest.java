@@ -1,16 +1,21 @@
 package com.weba11y.server.service;
 
 
+import com.weba11y.server.configuration.R2dbcConfig;
 import com.weba11y.server.domain.InspectionUrl;
 import com.weba11y.server.domain.Member;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlDto;
 import com.weba11y.server.jpa.repository.InspectionUrlRepository;
 import com.weba11y.server.jpa.repository.MemberRepository;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -30,8 +35,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ActiveProfiles("test")
 @SpringBootTest
-@Transactional
+@Import(R2dbcConfig.class)
+@Transactional(value = "transactionManager")
 public class InspectionUrlServiceImplTest {
+
     @Autowired
     InspectionUrlRepository inspectionUrlRepository;
     @Autowired
@@ -197,7 +204,7 @@ public class InspectionUrlServiceImplTest {
         // then
         assertTrue(result);
         assertTrue(result2);
-        assertFalse( result3);
+        assertFalse(result3);
         assertFalse(result4);
     }
 
@@ -231,5 +238,40 @@ public class InspectionUrlServiceImplTest {
         } catch (IOException e) {
             return false; // 예외 발생 시 URL이 존재하지 않음
         }
+    }
+
+    @Test
+    @DisplayName("파비콘 찾기")
+    void 파비콘_찾기() {
+        // given
+        String url = "https://www.youtube.com";
+
+        String favicon = "";
+        // when
+        try {
+            // HTML 문서 파싱
+            Document doc = Jsoup.connect(url).get();
+
+            // <link rel="icon"> 태그 검색
+            Element iconLink = doc.selectFirst("link[rel~=(?i)icon]");
+            if (iconLink != null) {
+                String faviconUrl = iconLink.attr("href");
+
+                // 상대경로 처리
+                if (!faviconUrl.startsWith("http")) {
+                    favicon = url + (faviconUrl.startsWith("/") ? "" : "/") + faviconUrl;
+                }
+                favicon = faviconUrl;
+            }
+
+            // 기본 파비콘 경로
+            favicon = url + "/favicon.ico";
+
+        } catch (IOException e) {
+            favicon = null; // 파비콘을 찾지 못한 경우
+        }
+        // then
+
+        System.out.println(favicon);
     }
 }
