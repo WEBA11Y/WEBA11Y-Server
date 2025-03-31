@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public class InspectionResultReactive extends BaseEntity {
+public class InspectionResultReactive {
 
     @Id
     @Column("result_id")
@@ -32,31 +32,37 @@ public class InspectionResultReactive extends BaseEntity {
     private Long inspectionUrlId;
 
     @Column("create_date")
-    private LocalDateTime createDate;
+    private String createDate;
 
     @Column("update_date")
-    private LocalDateTime updateDate;
+    private String updateDate;
 
     @Column("delete_date")
-    private LocalDateTime deleteDate;
+    private String deleteDate;
 
 
     @Builder
-    public InspectionResultReactive(int inspectionItems, String summary, String codeLine, Long inspectionUrlId) {
+    public InspectionResultReactive(int inspectionItems, String summary, String codeLine, Long inspectionUrlId, String createDate, String updateDate) {
         this.inspectionItems = inspectionItems;
         this.summary = summary;
         this.codeLine = codeLine;
         this.inspectionUrlId = inspectionUrlId;
-        this.createDate = LocalDateTime.now();
-        this.updateDate = LocalDateTime.now();
+        this.createDate = createDate;
+        this.updateDate = updateDate;
         this.deleteDate = null;
     }
 
     public InspectionResultDto toDto() {
+        InspectionItems item = InspectionItems.findByNumber(this.inspectionItems);
         return InspectionResultDto.builder()
-                .inspectionItems(InspectionItems.findByNumber(this.inspectionItems))
+                .id(this.id)
+                .inspectionItems(item)
+                .assessmentLevel(item.getAssessmentLevel())
+                .importance(item.getImportance())
                 .summary(this.summary)
                 .codeLine(this.codeLine)
+                .createDate(LocalDateTime.parse(this.createDate))
+                .updateDate(LocalDateTime.parse(this.updateDate))
                 .build();
     }
 }
