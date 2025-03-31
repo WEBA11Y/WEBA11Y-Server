@@ -1,31 +1,37 @@
 package com.weba11y.server.service.implement;
 
 import com.weba11y.server.domain.InspectionResult;
+import com.weba11y.server.domain.enums.AssessmentLevel;
+import com.weba11y.server.domain.enums.Importance;
+import com.weba11y.server.domain.enums.InspectionItems;
 import com.weba11y.server.dto.InspectionResults.InspectionResultDto;
 import com.weba11y.server.jpa.repository.InspectionResultRepository;
 import com.weba11y.server.service.InspectionResultService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
 @Slf4j
 @Service
+@Transactional(value = "transactionManager", readOnly = true)
 @RequiredArgsConstructor
 public class InspectionResultServiceImpl implements InspectionResultService {
 
     private final InspectionResultRepository inspectionResultRepository;
 
+    private static final Integer SIZE = 6;
+
 
     @Override
-    @Transactional(value = "transactionManager", readOnly = true)
     public List<LocalDate> retrieveInspectionResultDateByUrlId(Long urlId) {
         try {
             return Optional.ofNullable(inspectionResultRepository.findCreateDatesByInspectionUrlId(urlId))
@@ -37,7 +43,6 @@ public class InspectionResultServiceImpl implements InspectionResultService {
     }
 
     @Override
-    @Transactional(value = "transactionManager", readOnly = true)
     public List<InspectionResultDto> retrieveResultsByUrlIdAndDate(Long urlId, LocalDate date) {
         return inspectionResultRepository.findInspectionResultsByUrlIdAndCreateDate(urlId, date)
                 .stream()
@@ -45,5 +50,23 @@ public class InspectionResultServiceImpl implements InspectionResultService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<InspectionResultDto> retrieveResultsByDateAndImportance(int page, Long urlId, LocalDate date, Importance importance) {
+        return retrieveResults(page, urlId, date, InspectionItems.findItemsByImportance(importance));
+    }
 
+    @Override
+    public List<InspectionResultDto> retrieveResultsByDateAndLevel(int page, Long urlId, LocalDate date, AssessmentLevel assessmentLevel) {
+        return retrieveResults(page, urlId, date, InspectionItems.findItemsByAssessmentLevel(assessmentLevel));
+    }
+
+
+    private List<InspectionResultDto> retrieveResults(int page, Long urlId, LocalDate date, List<InspectionItems> items) {
+        Pageable pageable = PageRequest.of(page, SIZE);
+
+        return items.stream()
+                .flatMap(item -> inspectionResultRepository.findByUrlIdAndDateAndItem(pageable, urlId, date, item).stream())
+                .map(result -> result.toDto())
+                .collect(Collectors.toList());
+    }
 }

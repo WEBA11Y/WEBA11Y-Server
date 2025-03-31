@@ -6,6 +6,7 @@ import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.weba11y.server.domain.enums.AssessmentLevel.*;
 import static com.weba11y.server.domain.enums.Importance.*;
@@ -67,5 +68,17 @@ public enum InspectionItems {
             }
         }
         throw new IllegalArgumentException("No enum constant with number " + number);
+    }
+
+    public static List<InspectionItems> findItemsByAssessmentLevel(AssessmentLevel assessmentLevel) {
+        return Arrays.stream(InspectionItems.values())
+                .filter(item -> item.getAssessmentLevel() == assessmentLevel)
+                .collect(Collectors.toList());
+    }
+
+    public static List<InspectionItems> findItemsByImportance(Importance importance) {
+        return Arrays.stream(InspectionItems.values())
+                .filter(item -> item.getImportance() == importance)
+                .collect(Collectors.toList());
     }
 }
