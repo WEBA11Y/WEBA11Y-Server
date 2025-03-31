@@ -4,20 +4,21 @@ import com.weba11y.server.domain.InspectionResult;
 import com.weba11y.server.domain.InspectionUrl;
 import com.weba11y.server.domain.Member;
 import com.weba11y.server.domain.enums.InspectionItems;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlDto;
 import com.weba11y.server.dto.member.JoinDto;
 import com.weba11y.server.jpa.repository.InspectionResultRepository;
 import com.weba11y.server.jpa.repository.InspectionUrlRepository;
 import com.weba11y.server.service.AuthService;
-import com.weba11y.server.service.InspectionUrlService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
 @Component
 @RequiredArgsConstructor
+@Profile("!test")
 public class InitDB {
     private final InitService initService;
 
@@ -30,15 +31,16 @@ public class InitDB {
 }
 
 @Component
+@Transactional(value = "transactionManager")
 @RequiredArgsConstructor
 class InitService { // 외부 클래스로 변경
     private final AuthService authService;
-    private final InspectionUrlService inspectionUrlService;
     private final InspectionUrlRepository inspectionUrlRepository;
     private final InspectionResultRepository inspectionResultRepository;
     private Long memberId;
 
     // 회원 생성
+
     public void initMember() {
         JoinDto joinDto = JoinDto.builder()
                 .userId("test1234")

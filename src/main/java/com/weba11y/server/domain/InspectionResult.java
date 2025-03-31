@@ -31,10 +31,16 @@ public class InspectionResult extends BaseEntity {
     @JoinColumn(name = "inspection_url_id")
     private InspectionUrl inspectionUrl;
 
-    public InspectionResultDto toDto(){
+    public InspectionResultDto toDto() {
         return InspectionResultDto.builder()
+                .id(this.id)
                 .inspectionItems(this.inspectionItems)
+                .assessmentLevel(this.inspectionItems.getAssessmentLevel())
+                .importance(this.inspectionItems.getImportance())
                 .summary(this.summary)
+                .codeLine(this.codeLine)
+                .createDate(this.getCreateDate())
+                .updateDate(this.getUpdateDate())
                 .build();
     }
 

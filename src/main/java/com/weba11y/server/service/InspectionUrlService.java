@@ -24,3 +24,4 @@ public interface InspectionUrlService {
 
     HttpStatus deleteUrl(List<Long> urlId, Long memberId);
 }
+

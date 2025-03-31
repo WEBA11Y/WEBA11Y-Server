@@ -2,7 +2,6 @@ package com.weba11y.server.dto.InspectionUrl;
 
 import com.weba11y.server.domain.InspectionUrl;
 import com.weba11y.server.domain.Member;
-import com.weba11y.server.domain.enums.InspectionStatus;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -21,7 +20,7 @@ public class InspectionUrlDto {
     private Long id;
     private String summary;
     private String url;
-    private InspectionStatus status;
+    private String favicon;
     private Long parentId;
     @Builder.Default
     private List<InspectionUrlDto> child = new ArrayList<>();
@@ -30,11 +29,11 @@ public class InspectionUrlDto {
     private LocalDateTime deleteDate;
 
     public InspectionUrlDto.Response toResponse(){
-        return InspectionUrlDto.Response.builder()
+        return Response.builder()
                 .id(this.id)
                 .summary(this.summary)
                 .url(this.url)
-                .status(this.status)
+                .favicon(this.favicon)
                 .parentId(this.parentId != null ? this.parentId : null)
                 .child(this.child != null ? this.child.stream()
                         .map(InspectionUrlDto::toResponse)
@@ -89,7 +88,7 @@ public class InspectionUrlDto {
         private Long id;
         private String summary;
         private String url;
-        private InspectionStatus status;
+        private String favicon;
         private Long parentId;
         @Builder.Default
         private List<InspectionUrlDto.Response> child = new ArrayList<>();
@@ -105,6 +104,8 @@ public class InspectionUrlDto {
         private Long id;
         private String summary;
         private String url;
-        private InspectionStatus status;
+        private String favicon;
+        private LocalDateTime createDate;
+        private LocalDateTime updateDate;
     }
 }

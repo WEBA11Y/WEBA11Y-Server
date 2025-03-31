@@ -14,9 +14,6 @@ public class R2dbcConfig {
 
     @Bean
     public ConnectionFactory connectionFactory(R2dbcProperties properties) {
-        log.info("URL : {}", properties.getUrl());
-        log.info("Username : {}", properties.getUsername());
-        log.info("Password : {}", properties.getPassword());
         return ConnectionFactoryBuilder.withUrl(properties.getUrl())
                 .username(properties.getUsername())
                 .password(properties.getPassword())

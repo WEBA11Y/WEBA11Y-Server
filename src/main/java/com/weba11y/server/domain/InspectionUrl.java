@@ -29,6 +29,8 @@ public class InspectionUrl extends BaseEntity {
     @Column(nullable = false, length = 2048)
     private String url;
 
+    private String favicon;
+
     @Enumerated(EnumType.STRING)
     private InspectionStatus status = InspectionStatus.PENDING;
 
@@ -48,10 +50,14 @@ public class InspectionUrl extends BaseEntity {
     private List<InspectionResult> inspectionResults = new ArrayList<>();
 
     @Builder
-    public InspectionUrl(String summary, String url, Member member) {
+    public InspectionUrl(String summary, String url, Member member, String favicon) {
         this.summary = summary;
         this.url = url;
         this.member = member;
+    }
+
+    public void addFavicon(String favicon) {
+        this.favicon = favicon;
     }
 
     public void addChildUrl(InspectionUrl child) {
@@ -91,7 +97,7 @@ public class InspectionUrl extends BaseEntity {
                 .id(this.id)
                 .summary(this.summary)
                 .url(this.url)
-                .status(this.status)
+                .favicon(this.favicon)
                 .parentId(this.parent != null ? this.parent.getId() : null)
                 .child(this.child != null ? this.child.stream()
                         .map(InspectionUrl::toDto)
@@ -107,7 +113,9 @@ public class InspectionUrl extends BaseEntity {
                 .id(this.id)
                 .summary(this.summary)
                 .url(this.url)
-                .status(this.status)
+                .favicon(this.favicon)
+                .createDate(this.getCreateDate())
+                .updateDate(this.getUpdateDate())
                 .build();
     }
 

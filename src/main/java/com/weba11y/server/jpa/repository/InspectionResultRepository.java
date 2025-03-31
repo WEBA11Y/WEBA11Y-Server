@@ -26,9 +26,9 @@ public interface InspectionResultRepository extends JpaRepository<InspectionResu
     List<LocalDate> findCreateDatesByInspectionUrlId(@Param("inspectionUrlId") Long inspectionUrlId);
 
     @Query(value = "SELECT ir FROM InspectionResult ir " +
-            "WHERE ir.inspectionUrl.id = : urlId " +
-            "AND ir.inspectionItems = : item " +
-            "AND ir.createDate = : date " +
+            "WHERE ir.inspectionUrl.id = :urlId " +
+            "AND ir.inspectionItems = :item " +
+            "AND CAST (ir.createDate AS LocalDate) = :date " +
             "GROUP BY ir " +
             "ORDER BY ir.inspectionItems")
     Page<InspectionResult> findByUrlIdAndDateAndItem(Pageable pageable,
