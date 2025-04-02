@@ -9,7 +9,6 @@ import com.weba11y.server.jpa.repository.InspectionResultRepository;
 import com.weba11y.server.service.InspectionResultService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -63,10 +62,8 @@ public class InspectionResultServiceImpl implements InspectionResultService {
 
     private List<InspectionResultDto> retrieveResults(int page, Long urlId, LocalDate date, List<InspectionItems> items) {
         Pageable pageable = PageRequest.of(page, SIZE);
-
-        return items.stream()
-                .flatMap(item -> inspectionResultRepository.findByUrlIdAndDateAndItem(pageable, urlId, date, item).stream())
-                .map(result -> result.toDto())
+        return inspectionResultRepository.findByUrlIdAndDateAndItems(pageable, urlId, date, items).stream()
+                .map(InspectionResult::toDto)
                 .collect(Collectors.toList());
     }
 }

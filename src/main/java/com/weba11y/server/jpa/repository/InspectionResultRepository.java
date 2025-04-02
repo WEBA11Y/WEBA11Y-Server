@@ -27,12 +27,12 @@ public interface InspectionResultRepository extends JpaRepository<InspectionResu
 
     @Query(value = "SELECT ir FROM InspectionResult ir " +
             "WHERE ir.inspectionUrl.id = :urlId " +
-            "AND ir.inspectionItems = :item " +
-            "AND CAST (ir.createDate AS LocalDate) = :date " +
-            "GROUP BY ir " +
+            "AND ir.inspectionItems IN :items " +
+            "AND DATE(ir.createDate) = :date " +
             "ORDER BY ir.inspectionItems")
-    Page<InspectionResult> findByUrlIdAndDateAndItem(Pageable pageable,
-                                                     @Param("urlId") Long urlId,
-                                                     @Param("date") LocalDate date,
-                                                     @Param("item") InspectionItems item);
+    Page<InspectionResult> findByUrlIdAndDateAndItems(Pageable pageable,
+                                                      @Param("urlId") Long urlId,
+                                                      @Param("date") LocalDate date,
+                                                      @Param("items") List<InspectionItems> items);
+
 }
