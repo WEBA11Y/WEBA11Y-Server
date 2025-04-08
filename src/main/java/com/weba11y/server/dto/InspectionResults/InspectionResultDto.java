@@ -10,6 +10,8 @@ import lombok.*;
 import org.jsoup.nodes.Element;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Getter
@@ -33,7 +35,6 @@ public class InspectionResultDto {
     private LocalDateTime createDate;
 
     private LocalDateTime updateDate;
-
 
 
     public static InspectionResultDto createInspectionResultDto(Element element, InspectionItems inspectionItems) {
@@ -73,4 +74,14 @@ public class InspectionResultDto {
                 .build();
     }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class ResultListResponse {
+        @Builder.Default
+        private List<InspectionResultDto> content = new ArrayList<>();
+        private int totalPage;
+        private int currentPage;
+    }
 }

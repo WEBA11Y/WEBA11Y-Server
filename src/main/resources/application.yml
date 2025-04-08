@@ -82,4 +82,5 @@ springdoc:
 page:
   url-list:
     size: 8
-
+  result:
+    size: 6
