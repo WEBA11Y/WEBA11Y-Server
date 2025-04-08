@@ -16,10 +16,10 @@ public interface InspectionResultService {
     List<InspectionResultDto> retrieveResultsByUrlIdAndDate(Long urlId, LocalDate date);
 
     // 해당 날짜 및 중요도 별로 가져오기
-    List<InspectionResultDto> retrieveResultsByDateAndImportance(int page, Long urlId, LocalDate date, Importance importance);
+    InspectionResultDto.ResultListResponse retrieveResultsByDateAndImportance(int page, Long urlId, LocalDate date, Importance importance);
 
     // 해당 날짜 및 레벨 별로 가져오기
-    List<InspectionResultDto> retrieveResultsByDateAndLevel(int page, Long urlId, LocalDate date, AssessmentLevel assessmentLevel);
+    InspectionResultDto.ResultListResponse retrieveResultsByDateAndLevel(int page, Long urlId, LocalDate date, AssessmentLevel assessmentLevel);
 
     // 선택한 검사 항목 결과만 가져오기
     //List<InspectionResultDto> retrieveResultsByItem();

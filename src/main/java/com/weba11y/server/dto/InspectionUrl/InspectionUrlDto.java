@@ -101,6 +101,17 @@ public class InspectionUrlDto {
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     public static class ParentOnlyResponse {
+        @Builder.Default
+        private List<Parent> content = new ArrayList<>();
+        private int totalPage;
+        private int currentPage;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class Parent {
         private Long id;
         private String summary;
         private String url;

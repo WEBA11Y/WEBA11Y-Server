@@ -9,6 +9,8 @@ import com.weba11y.server.jpa.repository.InspectionResultRepository;
 import com.weba11y.server.service.InspectionResultService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,7 +29,9 @@ public class InspectionResultServiceImpl implements InspectionResultService {
 
     private final InspectionResultRepository inspectionResultRepository;
 
-    private static final Integer SIZE = 6;
+
+    @Value("${page.result.size}")
+    private int size;
 
 
     @Override
@@ -50,20 +54,23 @@ public class InspectionResultServiceImpl implements InspectionResultService {
     }
 
     @Override
-    public List<InspectionResultDto> retrieveResultsByDateAndImportance(int page, Long urlId, LocalDate date, Importance importance) {
+    public InspectionResultDto.ResultListResponse retrieveResultsByDateAndImportance(int page, Long urlId, LocalDate date, Importance importance) {
         return retrieveResults(page, urlId, date, InspectionItems.findItemsByImportance(importance));
     }
 
     @Override
-    public List<InspectionResultDto> retrieveResultsByDateAndLevel(int page, Long urlId, LocalDate date, AssessmentLevel assessmentLevel) {
+    public InspectionResultDto.ResultListResponse retrieveResultsByDateAndLevel(int page, Long urlId, LocalDate date, AssessmentLevel assessmentLevel) {
         return retrieveResults(page, urlId, date, InspectionItems.findItemsByAssessmentLevel(assessmentLevel));
     }
 
 
-    private List<InspectionResultDto> retrieveResults(int page, Long urlId, LocalDate date, List<InspectionItems> items) {
-        Pageable pageable = PageRequest.of(page, SIZE);
-        return inspectionResultRepository.findByUrlIdAndDateAndItems(pageable, urlId, date, items).stream()
-                .map(InspectionResult::toDto)
-                .collect(Collectors.toList());
+    private InspectionResultDto.ResultListResponse retrieveResults(int page, Long urlId, LocalDate date, List<InspectionItems> items) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<InspectionResult> list = inspectionResultRepository.findByUrlIdAndDateAndItems(pageable, urlId, date, items);
+        return InspectionResultDto.ResultListResponse.builder()
+                .content(list.stream().map(InspectionResult::toDto).collect(Collectors.toList()))
+                .totalPage(list.getTotalPages())
+                .currentPage(page)
+                .build();
     }
 }

@@ -77,3 +77,10 @@ springdoc:
     path: /weba11y-ui.html      # Swagger UI 추가 접근 경로 => <http://localhost:8080/weba11y-ui.html>
     tags-sorter: alpha          # alpha: 알파벳 순 태그 정렬, method: HTTP Method 순 정렬
     operations-sorter: alpha    # alpha: 알파벳 순 태그 정렬, method: HTTP Method 순 정렬
+
+## Pagination
+page:
+  url-list:
+    size: 8
+  result:
+    size: 6

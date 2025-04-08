@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -26,6 +28,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -38,7 +41,8 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     private static final Pattern URL_PATTERN = Pattern.compile(URL_REGEX);
 
     // 페이징 사이즈
-    private static final int SIZE = 10;
+    @Value("${page.url-list.size}")
+    private int size;
 
     @Transactional(value = "transactionManager")
     @Override
@@ -146,16 +150,14 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     }
 
     @Override
-    public List<InspectionUrlDto.ParentOnlyResponse> retrieveParentUrl(Long memberId) {
-        return repository.findParentByMemberId(memberId)
-                .stream().map(url -> url.toParentDto()).toList();
-    }
-
-    @Override
-    public List<InspectionUrlDto.ParentOnlyResponse> retrieveParentUrl(Long memberId, int page) {
-        Pageable pageable = PageRequest.of(page, SIZE);
-        return repository.findParentInspectionUrlsByMemberId(memberId, pageable)
-                .stream().map(url -> url.toParentDto()).toList();
+    public InspectionUrlDto.ParentOnlyResponse retrieveParentUrl(Long memberId, int page) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<InspectionUrl> list = repository.findParentInspectionUrlsByMemberId(memberId, pageable);
+        return InspectionUrlDto.ParentOnlyResponse.builder()
+                .content(list.stream().map(InspectionUrl::toParentDto).collect(Collectors.toList()))
+                .totalPage(list.getTotalPages())
+                .currentPage(page)
+                .build();
     }
 
     @Override

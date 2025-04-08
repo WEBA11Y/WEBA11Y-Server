@@ -35,7 +35,7 @@ public class InspectionUrlController {
     // 모든 URL 조회
     @GetMapping("/api/v1/urls")
     @Operation(summary = "등록된 모든 상위 URL 조회", description = "회원이 등록한 모든 상위 URL을 조회합니다.")
-    public ResponseEntity<List<InspectionUrlDto.ParentOnlyResponse>> getAllUrl(@RequestParam(defaultValue = "0") int page, Principal principal) {
+    public ResponseEntity<InspectionUrlDto.ParentOnlyResponse> getAllUrl(@RequestParam(defaultValue = "1") int page, Principal principal) {
         return ResponseEntity.ok().body(inspectionUrlService.retrieveParentUrl(getMemberId(principal), page));
     }
 
