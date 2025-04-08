@@ -108,8 +108,8 @@ public class InspectionUrl extends BaseEntity {
                 .build();
     }
 
-    public InspectionUrlDto.ParentOnlyResponse toParentDto() {
-        return InspectionUrlDto.ParentOnlyResponse.builder()
+    public InspectionUrlDto.Parent toParentDto() {
+        return InspectionUrlDto.Parent.builder()
                 .id(this.id)
                 .summary(this.summary)
                 .url(this.url)
