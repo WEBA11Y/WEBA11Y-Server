@@ -35,7 +35,6 @@ public class WebSecurityConfig {
         this.authService = authService;
     }
 
-    // JWT Filter 적용
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
@@ -45,6 +44,9 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v1/member/**").hasRole("USER")
                         .requestMatchers("/api/v1/urls/**").hasRole("USER")
+                        .requestMatchers("/api/v1/inspection-results/**").hasRole("USER")
+                        .requestMatchers("/api/v1/inspection-date/**").hasRole("USER")
+                        .requestMatchers("/api/v1/accessibility/**").hasRole("USER")
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(new JwtFilter(authService, secret), UsernamePasswordAuthenticationFilter.class) // Filter 동작 이전에 JWT Filter동작
