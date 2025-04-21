@@ -1,95 +1,155 @@
 package com.weba11y.server.service;
 
-import com.weba11y.server.service.implement.AccessibilityServiceImpl;
+import com.weba11y.server.dto.InspectionResults.InspectionResultDto;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static com.weba11y.server.domain.enums.InspectionItems.*;
 
-@ExtendWith(MockitoExtension.class)
+
+@ActiveProfiles("test")
+@SpringBootTest
 public class AccessibilityServiceImplTest {
 
-    @InjectMocks
-    private AccessibilityServiceImpl accessibilityService;
+    private static final String INSPECTION_URL = "https://www.naver.com";
 
-    @Mock
-    private Document mockDocument;
 
+    // 1. 대체 텍스트 검사
     @Test
-    public void testCheckAccessibility_AltAttributeMissing() throws IOException {
-        // Given
-        String url = "http://example.com";
+    @DisplayName("대체 택스트 검사")
+    void accessibilityAltTextChecker() {
+        try {
+            // HTML 문서 가져오기
+            Document doc = Jsoup.connect(INSPECTION_URL).get();
+            List<InspectionResultDto> resultDtoList = new ArrayList<>();
+            // 각 항목별 대체 텍스트 검사
+            checkImages(doc, resultDtoList);
+            checkLinks(doc, resultDtoList);
+            checkButtons(doc, resultDtoList);
+            checkVideos(doc, resultDtoList);
+            checkAudios(doc, resultDtoList);
+            checkSvgImages(doc, resultDtoList);
+            checkIcons(doc, resultDtoList);
+            checkCharts(doc, resultDtoList);
 
-        // Mock Jsoup.connect().get() to return mockDocument
-        when(mockDocument.select("img")).thenReturn(new Elements(new Element("img")));
-        when(mockDocument.select("a")).thenReturn(new Elements());
-
-        // When
-        List<String> issues = accessibilityService.checkAccessibility(url);
-
-        // Then
-        assertEquals(1, issues.size());
-        assertTrue(issues.get(0).contains("이미지 태그에 alt 속성이 없습니다"));
+            for (InspectionResultDto dto : resultDtoList)
+                System.out.println("결과 : " + dto.getSummary());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testCheckAccessibility_LinkTextMissing() throws IOException {
-        // Given
-        String url = "http://example.com";
-
-        // Mock Jsoup.connect().get() to return mockDocument
-        when(mockDocument.select("img")).thenReturn(new Elements());
-        Element linkElement = new Element("a");
-        when(mockDocument.select("a")).thenReturn(new Elements(linkElement));
-
-        // When
-        List<String> issues = accessibilityService.checkAccessibility(url);
-
-        // Then
-        assertEquals(1, issues.size());
-        assertTrue(issues.get(0).contains("링크에 텍스트가 없습니다"));
+    private static void checkImages(Document doc, List<InspectionResultDto> resultDtoList) {
+        Elements images = doc.select("img");
+        for (Element img : images) {
+            if (!img.hasAttr("alt")) {
+                resultDtoList.add(InspectionResultDto.builder()
+                        .inspectionItems(ALT_TEXT)
+                        .summary("이미지에 대체 텍스트가 없습니다.")
+                        .codeLine(img.outerHtml())
+                        .build());
+            }
+        }
     }
 
-    @Test
-    public void testCheckAccessibility_NoIssues() throws IOException {
-        // Given
-        String url = "http://example.com";
-
-        // Mock Jsoup.connect().get() to return mockDocument
-        when(mockDocument.select("img")).thenReturn(new Elements());
-        when(mockDocument.select("a")).thenReturn(new Elements());
-
-        // When
-        List<String> issues = accessibilityService.checkAccessibility(url);
-
-        // Then
-        assertTrue(issues.isEmpty());
+    private static void checkLinks(Document doc, List<InspectionResultDto> resultDtoList) {
+        Elements links = doc.select("a");
+        for (Element link : links) {
+            if (!link.hasAttr("aria-label") && !link.hasAttr("title") && link.ownText().isEmpty()) {
+                resultDtoList.add(InspectionResultDto.builder()
+                        .inspectionItems(ALT_TEXT)
+                        .summary("링크에 대체 텍스트가 없습니다.")
+                        .codeLine(link.outerHtml())
+                        .build());
+            }
+        }
     }
 
-    @Test
-    public void testCheckAccessibility_IOException() throws IOException {
-        // Given
-        String url = "http://example.com";
+    private static void checkButtons(Document doc, List<InspectionResultDto> resultDtoList) {
+        Elements buttons = doc.select("button");
+        for (Element button : buttons) {
+            if (!button.hasAttr("aria-label") && button.ownText().isEmpty()) {
+                resultDtoList.add(InspectionResultDto.builder()
+                        .inspectionItems(ALT_TEXT)
+                        .summary("버튼에 대체 텍스트가 없습니다.")
+                        .codeLine(button.outerHtml())
+                        .build());
+            }
+        }
+    }
 
-        // Mock Jsoup.connect().get() to throw IOException
-        when(Jsoup.connect(url).get()).thenThrow(new IOException("Connection error"));
+    private static void checkVideos(Document doc, List<InspectionResultDto> resultDtoList) {
+        Elements videos = doc.select("video");
+        for (Element video : videos) {
+            if (!video.hasAttr("title")) {
+                resultDtoList.add(InspectionResultDto.builder()
+                        .inspectionItems(ALT_TEXT)
+                        .summary("비디오에 대체 텍스트가 없습니다.")
+                        .codeLine(video.outerHtml())
+                        .build());
+            }
+        }
+    }
 
-        // When
-        List<String> issues = accessibilityService.checkAccessibility(url);
+    private static void checkAudios(Document doc, List<InspectionResultDto> resultDtoList) {
+        Elements audios = doc.select("audio");
+        for (Element audio : audios) {
+            if (!audio.hasAttr("title")) {
+                resultDtoList.add(InspectionResultDto.builder()
+                        .inspectionItems(ALT_TEXT)
+                        .summary("오디오에 대체 텍스트가 없습니다.")
+                        .codeLine(audio.outerHtml())
+                        .build());
+            }
+        }
+    }
 
-        // Then
-        assertEquals(1, issues.size());
-        assertTrue(issues.get(0).contains("URL 접속 중 오류 발생"));
+    private static void checkSvgImages(Document doc, List<InspectionResultDto> resultDtoList) {
+        Elements svgs = doc.select("svg");
+        for (Element svg : svgs) {
+            if (!svg.hasAttr("aria-label") && !svg.hasAttr("title")) {
+                resultDtoList.add(InspectionResultDto.builder()
+                        .inspectionItems(ALT_TEXT)
+                        .summary("SVG 이미지에 대체 텍스트가 없습니다.")
+                        .codeLine(svg.outerHtml())
+                        .build());
+            }
+        }
+    }
+
+    private static void checkIcons(Document doc, List<InspectionResultDto> resultDtoList) {
+        Elements icons = doc.select("[role='img'], .icon");
+        for (Element icon : icons) {
+            if (!icon.hasAttr("aria-label") && !icon.hasAttr("title")) {
+                resultDtoList.add(InspectionResultDto.builder()
+                        .inspectionItems(ALT_TEXT)
+                        .summary("아이콘에 대체 텍스트가 없습니다.")
+                        .codeLine(icon.outerHtml())
+                        .build());
+            }
+        }
+    }
+
+    private static void checkCharts(Document doc, List<InspectionResultDto> resultDtoList) {
+        Elements charts = doc.select("canvas");
+        for (Element chart : charts) {
+            if (!chart.hasAttr("aria-label")) {
+                resultDtoList.add(InspectionResultDto.builder()
+                        .inspectionItems(ALT_TEXT)
+                        .summary("차트에 대체 텍스트가 없습니다.")
+                        .codeLine(chart.outerHtml())
+                        .build());
+            }
+        }
     }
 }

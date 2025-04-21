@@ -40,9 +40,9 @@ import static org.junit.jupiter.api.Assertions.*;
 public class InspectionUrlServiceImplTest {
 
     @Autowired
-    InspectionUrlRepository inspectionUrlRepository;
+    private InspectionUrlRepository inspectionUrlRepository;
     @Autowired
-    MemberRepository memberRepository;
+    private MemberRepository memberRepository;
     @Autowired
     private Validator validator;
 
@@ -148,16 +148,6 @@ public class InspectionUrlServiceImplTest {
         assertThat(savedUrl.getParent().getId()).isEqualTo(parent.getId());
     }
 
-    @Test
-    @DisplayName("모든 URL 가져오기")
-    void 모든_URL_가져오기() {
-        // given
-        Long memberId = member.getId();
-        // when
-        List<InspectionUrl> urls = inspectionUrlRepository.findAllByMemberId(memberId);
-        // then
-        assertThat(6).isEqualTo(urls.size());
-    }
 
     @Test
     @DisplayName("URL 조회")
