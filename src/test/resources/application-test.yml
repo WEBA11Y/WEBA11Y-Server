@@ -56,3 +56,11 @@ jwt:
 ## Client
 client:
   url: http://localhost:3000
+
+## Pagination
+page:
+  url-list:
+    size: 8
+  result:
+    size: 6
+

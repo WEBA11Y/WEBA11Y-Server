@@ -16,13 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
-@Component
+//@Component
 @RequiredArgsConstructor
 @Profile("!test")
 public class InitDB {
     private final InitService initService;
 
-    @PostConstruct
+    //   @PostConstruct
     public void init() {
         initService.initMember();
         initService.initInspectionUrl();
@@ -30,7 +30,7 @@ public class InitDB {
     }
 }
 
-@Component
+//@Component
 @Transactional(value = "transactionManager")
 @RequiredArgsConstructor
 class InitService { // 외부 클래스로 변경

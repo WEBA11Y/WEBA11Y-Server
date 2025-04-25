@@ -1,10 +1,7 @@
 package com.weba11y.server.controller;
 
 
-import com.weba11y.server.dto.member.JoinDto;
-import com.weba11y.server.dto.member.LoginDto;
-import com.weba11y.server.dto.member.MemberDto;
-import com.weba11y.server.dto.member.UpdateMemberDto;
+import com.weba11y.server.dto.member.*;
 import com.weba11y.server.exception.custom.InvalidateTokenException;
 import com.weba11y.server.service.AuthService;
 import com.weba11y.server.util.CookieUtil;
@@ -36,14 +33,14 @@ public class AuthController {
 
     @PostMapping("/api/v1/login")
     @Operation(summary = "로그인", description = "로그인 성공시 인증 토큰을 발급합니다.")
-    public ResponseEntity<?> memberLogin(@RequestBody @Valid LoginDto loginDto,
-                                         HttpServletResponse res) {
+    public ResponseEntity<LoginResultDto> memberLogin(@RequestBody @Valid LoginDto loginDto,
+                                                      HttpServletResponse res) {
         return ResponseEntity.ok().body(authService.login(loginDto, res));
     }
 
     @PostMapping("/api/v1/join")
     @Operation(summary = "회원가입", description = "입력한 회원 정보를 등록합니다.")
-    public ResponseEntity<?> memberJoin(@RequestBody @Valid JoinDto joinDto) {
+    public ResponseEntity<JoinResultDto> memberJoin(@RequestBody @Valid JoinDto joinDto) {
         return ResponseEntity.ok().body(authService.join(joinDto));
     }
 
@@ -56,7 +53,7 @@ public class AuthController {
 
     @PutMapping("/api/v1/member")
     @Operation(summary = "회원 정보 수정", description = "수정 가능한 회원 정보를 수정합니다.")
-    public ResponseEntity<?> updateMember(@RequestBody @Valid UpdateMemberDto memberDto,
+    public ResponseEntity<MemberDto> updateMember(@RequestBody @Valid UpdateMemberDto memberDto,
                                           Principal principal) {
         Long memberId = getMemberId(principal);
         return ResponseEntity.ok().body(authService.updateMember(memberId, memberDto));
@@ -87,6 +84,7 @@ public class AuthController {
     }
 
     @GetMapping("/api/v1/reissuing-token")
+    @Operation(summary = "Access Token 재발급", description = "Cookie에 저장된 Refresh Token으로 Access Token을 재발급 받습니다.")
     public ResponseEntity<String> reissuingAccessToken(HttpServletRequest request) {
         Cookie refreshTokenCookie = findCookie(request, REFRESH_TOKEN_COOKIE);
         if (refreshTokenCookie == null || refreshTokenCookie.getValue().equals(""))
@@ -96,6 +94,7 @@ public class AuthController {
 
     // 로그아웃
     @GetMapping("/api/v1/logout")
+    @Operation(summary = "로그아웃", description = "Cookie에 저장된 Refresh Token을 만료시킨다.")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         // Cookie 에서 Refresh Token 찾는다.
         Cookie refreshTokenCookie = CookieUtil.findCookie(request, REFRESH_TOKEN_COOKIE);
