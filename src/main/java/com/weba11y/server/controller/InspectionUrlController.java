@@ -1,6 +1,5 @@
 package com.weba11y.server.controller;
 
-
 import com.weba11y.server.domain.Member;
 import com.weba11y.server.dto.InspectionUrl.InspectionUrlDto;
 import com.weba11y.server.service.AuthService;
@@ -27,7 +26,8 @@ public class InspectionUrlController {
     // URL 등록
     @PostMapping("/api/v1/urls")
     @Operation(summary = "URL 등록", description = "URL을 등록합니다. ( 상위 URL이 있다면 해당 URL의 ID값을 추가하세요. )")
-    public ResponseEntity<InspectionUrlDto.Response> registerUrl(@RequestBody @Valid InspectionUrlDto.Request requestDto, Principal principal) {
+    public ResponseEntity<InspectionUrlDto.Response> registerUrl(@RequestBody @Valid InspectionUrlDto.Request requestDto,
+                                                                 Principal principal) {
         Member member = authService.retrieveMember(getMemberId(principal));
         return ResponseEntity.ok().body(inspectionUrlService.saveUrl(requestDto, member).toResponse());
     }
@@ -35,7 +35,8 @@ public class InspectionUrlController {
     // 모든 URL 조회
     @GetMapping("/api/v1/urls")
     @Operation(summary = "등록된 모든 상위 URL 조회", description = "회원이 등록한 모든 상위 URL을 조회합니다.")
-    public ResponseEntity<InspectionUrlDto.ParentOnlyResponse> getAllUrl(@RequestParam(defaultValue = "1") int page, Principal principal) {
+    public ResponseEntity<InspectionUrlDto.ParentOnlyResponse> getAllUrl(@RequestParam(defaultValue = "1") int page,
+                                                                         Principal principal) {
         return ResponseEntity.ok().body(inspectionUrlService.retrieveParentUrl(getMemberId(principal), page));
     }
 
