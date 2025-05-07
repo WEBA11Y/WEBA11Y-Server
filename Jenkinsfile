@@ -1,13 +1,10 @@
 pipeline {
     agent any
 
-    environment {
-        dockerImage = ''
-    }
-
     stages {
         stage('Build Project') {
             steps {
+                sh 'chmod +x ./gradlew' // gradlew 파일에 실행 권한 부여
                 sh './gradlew clean build'
             }
         }
