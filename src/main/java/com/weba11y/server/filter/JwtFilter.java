@@ -1,6 +1,5 @@
 package com.weba11y.server.filter;
 
-
 import com.weba11y.server.constants.ShouldNotFilterPath;
 import com.weba11y.server.dto.member.TokenInfo;
 import com.weba11y.server.exception.custom.ExpiredTokenException;
@@ -25,8 +24,8 @@ import java.util.List;
 
 @Slf4j
 public class JwtFilter extends OncePerRequestFilter {
-    private String secret;
-    private AuthService authService;
+    private final String secret;
+    private final AuthService authService;
 
     public JwtFilter(AuthService authService, String secret) {
         this.authService = authService;
@@ -34,32 +33,37 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
+
         final String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
-        log.info("HTTP Method : {}", request.getMethod());
+        final String clientIp = getClientIp(request);
+        final String method = request.getMethod();
+        final String uri = request.getRequestURI();
+
+        log.info("Request: [{}] {} - IP: {}", method, uri, clientIp);
 
         // Token이 없을 시 Block
         if (authorization == null || !authorization.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
+
         // Token 꺼내기
         String token = authorization.split(" ")[1];
         if (token.isEmpty()) {
-            log.error("Token is null");
+            log.error("Token is null - IP: {}", clientIp);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "토큰이 존재하지 않습니다.");
+            return;
         }
 
-        // Token Expired되었는지 여부
+        // Token Expired 여부 검사
         try {
             JwtUtil.validateToken(token, secret);
-        } catch (SignatureException e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
-            return;
-        } catch (ExpiredTokenException e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
-            return;
-        } catch (MalformedJwtException e) {
+        } catch (SignatureException | ExpiredTokenException | MalformedJwtException e) {
+            log.warn("Invalid token - IP: {}, Reason: {}", clientIp, e.getMessage());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
             return;
         }
@@ -67,24 +71,29 @@ public class JwtFilter extends OncePerRequestFilter {
         // Token에 저장된 정보
         TokenInfo tokenInfo = JwtUtil.getTokenInfo(token, secret);
         Long memberPrimaryKey = tokenInfo.getMemberId();
-        // 권한 지정
-        log.info("Member_Primary_Key : {}", memberPrimaryKey);
-        log.info("Role : {}", tokenInfo.getRole());
 
-        // 권한 부여
+        log.info("Member_ID: {}, Role: {}, IP: {}", memberPrimaryKey, tokenInfo.getRole(), clientIp);
+
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(memberPrimaryKey, null, List.of(new SimpleGrantedAuthority(tokenInfo.getRole())));
 
-        // Detail을 넣어준다.
         authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
         filterChain.doFilter(request, response);
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        log.info("Path : {}", path);
         return (ShouldNotFilterPath.EXCLUDE_PATHS.stream().anyMatch(path::startsWith));
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader != null && !xfHeader.isEmpty()) {
+            return xfHeader.split(",")[0];  // 첫 번째가 실제 클라이언트 IP
+        }
+        return request.getRemoteAddr();
     }
 }
