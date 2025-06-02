@@ -53,7 +53,10 @@ public class InspectionUrlCustomRepositoryImpl implements InspectionUrlCustomRep
                             "SELECT DISTINCT iu FROM InspectionUrl iu " +
                                     "LEFT JOIN FETCH iu.child c " +  // 자식 URL을 함께 가져옴
                                     "LEFT JOIN FETCH c.child " +      // 자식의 자식 URL도 함께 가져옴
-                                    "WHERE iu.id = :urlId AND iu.member.id = :memberId",
+                                    "WHERE iu.id = :urlId " +
+                                    "AND iu.member.id = :memberId " +
+                                    "AND iu.status != 'HIDE' " + // iu.status가 HIDE가 아닌 경우
+                                    "AND (c IS NULL OR c.status != 'HIDE')", // c가 NULL이거나 c.status가 HIDE가 아닌 경우
                             InspectionUrl.class)
                     .setParameter("urlId", urlId)
                     .setParameter("memberId", memberId)
