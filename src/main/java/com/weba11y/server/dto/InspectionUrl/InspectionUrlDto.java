@@ -2,6 +2,7 @@ package com.weba11y.server.dto.InspectionUrl;
 
 import com.weba11y.server.domain.InspectionUrl;
 import com.weba11y.server.domain.Member;
+import com.weba11y.server.dto.InspectionResults.InspectionResultDto;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -28,15 +29,23 @@ public class InspectionUrlDto {
     private LocalDateTime updateDate;
     private LocalDateTime deleteDate;
 
-    public InspectionUrlDto.Response toResponse(){
+    public InspectionUrlDto.Response toResponse() {
         return Response.builder()
                 .id(this.id)
                 .summary(this.summary)
                 .url(this.url)
                 .favicon(this.favicon)
                 .parentId(this.parentId != null ? this.parentId : null)
-                .child(this.child != null ? this.child.stream()
-                        .map(InspectionUrlDto::toResponse)
+                .childUrls(this.child != null ? this.child.stream()
+                        .map(child -> Response.ChildUrl.builder()
+                                .id(child.id)
+                                .summary(child.summary)
+                                .url(child.url)
+                                .favicon(child.favicon)
+                                .parentId(child.parentId)
+                                .createDate(child.createDate)
+                                .updateDate(child.updateDate)
+                                .build())
                         .toList() : null)
                 .createDate(this.getCreateDate())
                 .updateDate(this.getUpdateDate())
@@ -91,9 +100,29 @@ public class InspectionUrlDto {
         private String favicon;
         private Long parentId;
         @Builder.Default
-        private List<InspectionUrlDto.Response> child = new ArrayList<>();
+        private List<ChildUrl> childUrls = new ArrayList<>();
+        @Builder.Default
+        private List<InspectionResultDto.ResultListResponse> inspectionResults = new ArrayList<>();
         private LocalDateTime createDate;
         private LocalDateTime updateDate;
+
+        @Getter
+        @Builder
+        @NoArgsConstructor(access = AccessLevel.PROTECTED)
+        @AllArgsConstructor(access = AccessLevel.PROTECTED)
+        public static class ChildUrl {
+            private Long id;
+            private String summary;
+            private String url;
+            private String favicon;
+            private Long parentId;
+            private LocalDateTime createDate;
+            private LocalDateTime updateDate;
+        }
+
+        public void addInspectionResults(List<InspectionResultDto.ResultListResponse> inspectionResultDtoList) {
+            this.inspectionResults.addAll(inspectionResultDtoList);
+        }
     }
 
     @Getter
