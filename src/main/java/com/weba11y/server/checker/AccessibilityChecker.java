@@ -1,9 +1,11 @@
 package com.weba11y.server.checker;
 
-import com.weba11y.server.dto.InspectionResults.InspectionResultDto;
+import com.weba11y.server.dto.accessibilityViolation.AccessibilityViolationDto;
 import org.jsoup.nodes.Document;
-import reactor.core.publisher.Flux;
+
+import java.util.List;
 
 public interface AccessibilityChecker {
-    Flux<InspectionResultDto> check(Document doc);
+    List<AccessibilityViolationDto> check(List<AccessibilityViolationDto> violations, Document doc);
+
 }

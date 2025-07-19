@@ -27,19 +27,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'javax.xml.bind:jaxb-api:2.3.0'
-    implementation 'io.projectreactor:reactor-core'
 
-    // R2DBC core
-    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
-
-    // R2DBC MariaDB driver
-    implementation 'org.mariadb:r2dbc-mariadb:1.2.0'
-
-    // https://mvnrepository.com/artifact/io.github.cdimascio/dotenv-java
-    implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+    // Playwright
+    // https://mvnrepository.com/artifact/com.microsoft.playwright/playwright
+    implementation 'com.microsoft.playwright:playwright:1.53.0'
 
     // JWT
     implementation 'io.jsonwebtoken:jjwt:0.9.1'
@@ -65,12 +58,6 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:5.14.2'
     // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
     testImplementation 'org.mockito:mockito-junit-jupiter:5.14.2'
-
-    // R2DBC 테스트 지원 (optional)
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
-    // https://mvnrepository.com/artifact/io.r2dbc/r2dbc-h2
-    testImplementation 'io.r2dbc:r2dbc-h2:1.0.0.RELEASE'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'

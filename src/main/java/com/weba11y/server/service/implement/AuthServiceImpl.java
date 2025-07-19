@@ -6,7 +6,7 @@ import com.weba11y.server.dto.member.*;
 import com.weba11y.server.exception.custom.DuplicateFieldException;
 import com.weba11y.server.exception.custom.ExpiredRefreshTokenException;
 import com.weba11y.server.exception.custom.ExpiredTokenException;
-import com.weba11y.server.jpa.repository.MemberRepository;
+import com.weba11y.server.repository.MemberRepository;
 import com.weba11y.server.service.AuthService;
 import com.weba11y.server.util.CookieUtil;
 import com.weba11y.server.util.JwtUtil;

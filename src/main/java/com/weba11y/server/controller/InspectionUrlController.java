@@ -1,18 +1,22 @@
 package com.weba11y.server.controller;
 
+import com.weba11y.server.annotation.CurrentMemberId;
 import com.weba11y.server.domain.Member;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlDto;
+import com.weba11y.server.dto.InspectionDetailDto;
+import com.weba11y.server.dto.accessibilityViolation.AccessibilityViolationDto;
+import com.weba11y.server.dto.inspectionSummary.InspectionSummaryDto;
+import com.weba11y.server.dto.inspectionUrl.InspectionUrlDto;
 import com.weba11y.server.service.AuthService;
+import com.weba11y.server.service.AccessibilityViolationService;
+import com.weba11y.server.service.InspectionSummaryService;
 import com.weba11y.server.service.InspectionUrlService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -20,15 +24,17 @@ import java.util.List;
 @Tag(name = "URL 관리 API", description = "URL을 관리하는 API입니다.")
 public class InspectionUrlController {
 
-    private final InspectionUrlService inspectionUrlService;
     private final AuthService authService;
+    private final InspectionUrlService inspectionUrlService;
+    private final InspectionSummaryService inspectionSummaryService;
+    private final AccessibilityViolationService accessibilityViolationService;
 
     // URL 등록
     @PostMapping("/api/v1/urls")
     @Operation(summary = "URL 등록", description = "URL을 등록합니다. ( 상위 URL이 있다면 해당 URL의 ID값을 추가하세요. )")
     public ResponseEntity<InspectionUrlDto.Response> registerUrl(@RequestBody @Valid InspectionUrlDto.Request requestDto,
-                                                                 Principal principal) {
-        Member member = authService.retrieveMember(getMemberId(principal));
+                                                                 @CurrentMemberId Long memberId) {
+        Member member = authService.retrieveMember(memberId);
         return ResponseEntity.ok().body(inspectionUrlService.saveUrl(requestDto, member).toResponse());
     }
 
@@ -36,18 +42,29 @@ public class InspectionUrlController {
     @GetMapping("/api/v1/urls")
     @Operation(summary = "등록된 모든 상위 URL 조회", description = "회원이 등록한 모든 상위 URL을 조회합니다.")
     public ResponseEntity<InspectionUrlDto.ParentOnlyResponse> getAllUrl(@RequestParam(defaultValue = "1") int page,
-                                                                         Principal principal) {
-        return ResponseEntity.ok().body(inspectionUrlService.retrieveParentUrl(getMemberId(principal), page));
+                                                                         @CurrentMemberId Long memberId) {
+        return ResponseEntity.ok().body(inspectionUrlService.retrieveParentUrl(memberId, page));
     }
 
     // URL 조회
     @GetMapping("/api/v1/urls/{id}")
     @Operation(summary = "선택한 URL 정보 조회", description = "선택한 URL의 정보를 조회합니다.")
-    public ResponseEntity<InspectionUrlDto.Response> getUrl(@PathVariable("id") Long urlId, Principal principal) {
-        return ResponseEntity.ok().body(inspectionUrlService.retrieveUrl(urlId, getMemberId(principal)).toResponse());
+    public ResponseEntity<InspectionDetailDto> getUrl(@PathVariable("id") Long urlId, @CurrentMemberId Long memberId) {
+
+        InspectionUrlDto.Response inspectionUrl = inspectionUrlService.retrieveUrl(urlId, memberId).toResponse();
+        List<InspectionSummaryDto.InspectionSummaryMetadataDto> inspectionSummaries = inspectionSummaryService.retrieveSummariesMetadataByUrlAndMember(urlId, memberId);
+        InspectionSummaryDto latestInspectionSummaryDto = inspectionSummaryService.retrieveLatestInspectionSummaryByUrlIdAndMemberId(urlId, memberId);
+        List<AccessibilityViolationDto> top5Violations = accessibilityViolationService.getTop5ViolationsBySummaryId(latestInspectionSummaryDto.getId());
+        InspectionDetailDto detailDto = InspectionDetailDto.builder()
+                .inspectionUrl(inspectionUrl)
+                .inspectionSummaries(inspectionSummaries)
+                .latestInspectionSummary(latestInspectionSummaryDto)
+                .top5Violations(top5Violations)
+                .build();
+        return ResponseEntity.ok().body(detailDto);
     }
 
-    // URL 수정
+    // URL
     @PutMapping("/api/v1/urls/{id}")
     @Operation(summary = "등록된 URL 정보 수정", description = "URL의 정보를 수정합니다.")
     public ResponseEntity<InspectionUrlDto.Response> updateUrl(@PathVariable("id") Long urlId,
@@ -58,13 +75,8 @@ public class InspectionUrlController {
     // URL 삭제
     @DeleteMapping("/api/v1/urls")
     @Operation(summary = "등록된 URL 삭제", description = "URL 정보를 삭제합니다.")
-    public ResponseEntity<Void> deleteUrl(@RequestBody List<Long> urlIds, Principal principal) {
-        return ResponseEntity.status(inspectionUrlService.deleteUrl(urlIds, getMemberId(principal))).build();
+    public ResponseEntity<Void> deleteUrl(@RequestBody List<Long> urlIds, @CurrentMemberId Long memberId) {
+        return ResponseEntity.status(inspectionUrlService.deleteUrl(urlIds, memberId)).build();
     }
 
-    private Long getMemberId(Principal principal) {
-        return principal instanceof UsernamePasswordAuthenticationToken
-                ? (Long) ((UsernamePasswordAuthenticationToken) principal).getPrincipal()
-                : -1L;
-    }
 }

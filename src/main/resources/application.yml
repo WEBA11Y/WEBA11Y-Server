@@ -1,3 +1,6 @@
+server:
+  port: ${SERVER_PORT}
+
 ## Spring
 spring:
   application:
@@ -12,7 +15,7 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     defer-datasource-initialization: true
     properties:
       hibernate:
@@ -30,14 +33,6 @@ spring:
       port: ${REDIS_PORT:6379}
       timeout: 6000
       database: 8
-  r2dbc:
-    url: ${R2DBC_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    pool:
-      max-size: 20
-      min-size: 1
-      initial-size: 1
 
 ## Logging
 logging:
@@ -49,7 +44,6 @@ logging:
       hibernate:
         sql: debug
         type: trace
-
 
 ### JWT
 jwt:

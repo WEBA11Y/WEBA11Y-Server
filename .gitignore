@@ -67,4 +67,7 @@ out/
 hs_err_pid*
 replay_pid*
 
+# Test용 DB더미 데이터
+src/main/java/com/weba11y/server/configuration/InitDB.java
+
 # End of https://www.toptal.com/developers/gitignore/api/java

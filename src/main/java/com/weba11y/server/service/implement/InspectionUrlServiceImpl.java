@@ -2,12 +2,10 @@ package com.weba11y.server.service.implement;
 
 import com.weba11y.server.domain.InspectionUrl;
 import com.weba11y.server.domain.Member;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlDto;
-import com.weba11y.server.exception.custom.DuplicateFieldException;
+import com.weba11y.server.dto.inspectionUrl.InspectionUrlDto;
 import com.weba11y.server.exception.custom.DuplicationUrlException;
 import com.weba11y.server.exception.custom.InvalidUrlException;
-import com.weba11y.server.exception.custom.InvalidateTokenException;
-import com.weba11y.server.jpa.repository.InspectionUrlRepository;
+import com.weba11y.server.repository.InspectionUrlRepository;
 import com.weba11y.server.service.InspectionUrlService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

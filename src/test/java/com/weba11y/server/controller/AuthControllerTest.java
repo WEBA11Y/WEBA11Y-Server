@@ -4,7 +4,7 @@ import com.weba11y.server.domain.Member;
 import com.weba11y.server.dto.member.JoinDto;
 import com.weba11y.server.dto.member.LoginDto;
 import com.weba11y.server.dto.member.UpdateMemberDto;
-import com.weba11y.server.jpa.repository.MemberRepository;
+import com.weba11y.server.repository.MemberRepository;
 import com.weba11y.server.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
