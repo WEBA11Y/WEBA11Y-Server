@@ -1,4 +1,4 @@
-package com.weba11y.server.service.implement;
+package com.weba11y.server.util;
 
 import java.util.ArrayList;
 import java.util.List;

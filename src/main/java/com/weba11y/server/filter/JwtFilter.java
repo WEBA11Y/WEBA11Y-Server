@@ -9,6 +9,7 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,9 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 public class JwtFilter extends OncePerRequestFilter {
@@ -82,7 +85,19 @@ public class JwtFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
-
+    // 쿠키에서 토큰을 추출하는 헬퍼 메소드
+    private Optional<String> extractTokenFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            return Arrays.stream(cookies)
+                    .filter(cookie -> "Authorization".equals(cookie.getName()) || "AccessToken".equals(cookie.getName())) // "Authorization" 또는 "AccessToken" 쿠키 이름 사용
+                    .map(Cookie::getValue)
+                    .filter(value -> value.startsWith("Bearer ")) // "Bearer " 접두사 확인
+                    .map(value -> value.substring(7)) // "Bearer " 제거
+                    .findFirst();
+        }
+        return Optional.empty();
+    }
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
