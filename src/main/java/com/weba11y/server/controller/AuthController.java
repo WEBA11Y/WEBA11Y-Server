@@ -1,6 +1,7 @@
 package com.weba11y.server.controller;
 
 
+import com.weba11y.server.annotation.CurrentMemberId;
 import com.weba11y.server.dto.member.*;
 import com.weba11y.server.exception.custom.InvalidateTokenException;
 import com.weba11y.server.service.AuthService;
@@ -14,10 +15,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
 
 import static com.weba11y.server.util.CookieUtil.*;
 
@@ -46,23 +44,20 @@ public class AuthController {
 
     @GetMapping("/api/v1/member")
     @Operation(summary = "회원 정보 조회", description = "인증 토큰으로 회원 정보를 가져옵니다.")
-    public ResponseEntity<MemberDto> getMember(Principal principal) {
-        Long memberId = getMemberId(principal);
+    public ResponseEntity<MemberDto> getMember(@CurrentMemberId Long memberId) {
         return ResponseEntity.ok().body(authService.retrieveMember(memberId).toDto());
     }
 
     @PutMapping("/api/v1/member")
     @Operation(summary = "회원 정보 수정", description = "수정 가능한 회원 정보를 수정합니다.")
     public ResponseEntity<MemberDto> updateMember(@RequestBody @Valid UpdateMemberDto memberDto,
-                                          Principal principal) {
-        Long memberId = getMemberId(principal);
+                                                  @CurrentMemberId Long memberId) {
         return ResponseEntity.ok().body(authService.updateMember(memberId, memberDto));
     }
 
     @DeleteMapping("/api/v1/member")
     @Operation(summary = "회원 탈퇴", description = "회원을 비활성화 하고 30일 이후에 영구적으로 삭제합니다.")
-    public ResponseEntity<?> deleteMember(Principal principal) {
-        Long memberId = getMemberId(principal);
+    public ResponseEntity<?> deleteMember(@CurrentMemberId Long memberId) {
         return ResponseEntity.ok().body(authService.deleteMember(memberId));
     }
 
@@ -101,11 +96,5 @@ public class AuthController {
         if (refreshTokenCookie != null && refreshTokenCookie.getValue() != null && !refreshTokenCookie.getValue().equals(""))
             CookieUtil.deleteCookie(response, refreshTokenCookie); // Refresh Token 삭제 -> Refresh Token의 정보 소멸
         return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    private Long getMemberId(Principal principal) {
-        return principal instanceof UsernamePasswordAuthenticationToken
-                ? (Long) ((UsernamePasswordAuthenticationToken) principal).getPrincipal()
-                : -1L;
     }
 }

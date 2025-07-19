@@ -1,8 +1,8 @@
-package com.weba11y.server.jpa.repository.implement;
+package com.weba11y.server.repository.implement;
 
 import com.weba11y.server.domain.Member;
 import com.weba11y.server.dto.member.JoinDto;
-import com.weba11y.server.jpa.repository.MemberCustomRepository;
+import com.weba11y.server.repository.MemberCustomRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;
