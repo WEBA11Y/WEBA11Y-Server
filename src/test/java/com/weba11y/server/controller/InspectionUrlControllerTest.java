@@ -2,8 +2,8 @@ package com.weba11y.server.controller;
 
 
 import com.weba11y.server.domain.Member;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlDto;
-import com.weba11y.server.jpa.repository.MemberRepository;
+import com.weba11y.server.dto.inspectionUrl.InspectionUrlDto;
+import com.weba11y.server.repository.MemberRepository;
 import com.weba11y.server.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -61,7 +61,7 @@ public class InspectionUrlControllerTest extends BaseIntegrationTest {
         // given
         InspectionUrlDto.Request request = InspectionUrlDto.Request.builder()
                 .url("https://www.naver.com")
-                .summary("Naver")
+                .description("Naver")
                 .build();
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/v1/urls")
@@ -72,7 +72,7 @@ public class InspectionUrlControllerTest extends BaseIntegrationTest {
         // then
         resultActions.andExpect(status().isOk())
                 .andExpect(jsonPath("$.url").value(request.getUrl()))
-                .andExpect(jsonPath("$.summary").value(request.getSummary()));
+                .andExpect(jsonPath("$.description").value(request.getDescription()));
     }
 
     @Test

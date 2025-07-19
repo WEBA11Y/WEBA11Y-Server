@@ -1,8 +1,8 @@
-package com.weba11y.server.dto.InspectionUrl;
+package com.weba11y.server.dto.inspectionUrl;
 
 import com.weba11y.server.domain.InspectionUrl;
 import com.weba11y.server.domain.Member;
-import com.weba11y.server.dto.InspectionResults.InspectionResultDto;
+import com.weba11y.server.dto.inspectionSummary.InspectionSummaryDto;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -19,7 +19,7 @@ import java.util.List;
 public class InspectionUrlDto {
 
     private Long id;
-    private String summary;
+    private String description;
     private String url;
     private String favicon;
     private Long parentId;
@@ -32,17 +32,16 @@ public class InspectionUrlDto {
     public InspectionUrlDto.Response toResponse() {
         return Response.builder()
                 .id(this.id)
-                .summary(this.summary)
+                .description(this.description)
                 .url(this.url)
                 .favicon(this.favicon)
                 .parentId(this.parentId != null ? this.parentId : null)
                 .childUrls(this.child != null ? this.child.stream()
                         .map(child -> Response.ChildUrl.builder()
                                 .id(child.id)
-                                .summary(child.summary)
+                                .description(child.description)
                                 .url(child.url)
                                 .favicon(child.favicon)
-                                .parentId(child.parentId)
                                 .createDate(child.createDate)
                                 .updateDate(child.updateDate)
                                 .build())
@@ -60,7 +59,7 @@ public class InspectionUrlDto {
     public static class Request {
         @NotNull(message = "설명은 최소 2글자 최대 255자로 입력해야합니다.")
         @Size(min = 2, max = 255, message = "설명은 최소 2글자 최대 255자로 입력해야합니다.")
-        private String summary;
+        private String description;
 
         @NotNull(message = "URL을 입력하세요.")
         @Size(min = 10, max = 2048)
@@ -72,7 +71,7 @@ public class InspectionUrlDto {
         // 부모 URL이 있는 경우
         public InspectionUrl toEntity(InspectionUrl parent, Member member) {
             InspectionUrl inspectionUrl = InspectionUrl.builder()
-                    .summary(this.summary)
+                    .description(this.description)
                     .url(this.url)
                     .member(member)
                     .build();
@@ -82,7 +81,7 @@ public class InspectionUrlDto {
 
         public InspectionUrl toEntity(Member member) {
             return InspectionUrl.builder()
-                    .summary(this.summary)
+                    .description(this.description)
                     .url(this.url)
                     .member(member)
                     .build();
@@ -95,14 +94,12 @@ public class InspectionUrlDto {
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     public static class Response {
         private Long id;
-        private String summary;
+        private String description;
         private String url;
         private String favicon;
         private Long parentId;
         @Builder.Default
         private List<ChildUrl> childUrls = new ArrayList<>();
-        @Builder.Default
-        private List<InspectionResultDto.ResultListResponse> inspectionResults = new ArrayList<>();
         private LocalDateTime createDate;
         private LocalDateTime updateDate;
 
@@ -110,18 +107,13 @@ public class InspectionUrlDto {
         @Builder
         @NoArgsConstructor(access = AccessLevel.PROTECTED)
         @AllArgsConstructor(access = AccessLevel.PROTECTED)
-        public static class ChildUrl {
+        private static class ChildUrl {
             private Long id;
-            private String summary;
+            private String description;
             private String url;
             private String favicon;
-            private Long parentId;
             private LocalDateTime createDate;
             private LocalDateTime updateDate;
-        }
-
-        public void addInspectionResults(List<InspectionResultDto.ResultListResponse> inspectionResultDtoList) {
-            this.inspectionResults.addAll(inspectionResultDtoList);
         }
     }
 
@@ -142,7 +134,7 @@ public class InspectionUrlDto {
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     public static class Parent {
         private Long id;
-        private String summary;
+        private String description;
         private String url;
         private String favicon;
         private LocalDateTime createDate;

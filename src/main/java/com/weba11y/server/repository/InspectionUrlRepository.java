@@ -1,4 +1,4 @@
-package com.weba11y.server.jpa.repository;
+package com.weba11y.server.repository;
 
 import com.weba11y.server.domain.InspectionUrl;
 import org.springframework.data.domain.Page;
@@ -16,16 +16,15 @@ public interface InspectionUrlRepository extends JpaRepository<InspectionUrl, Lo
     List<InspectionUrl> findAllByMemberIdAndParentId(Long memberId, Long parentId);
 
 
-    @Query("SELECT iu FROM InspectionUrl iu LEFT JOIN iu.inspectionResults ir " +
+    @Query("SELECT iu FROM InspectionUrl iu LEFT JOIN iu.inspectionSummaries is " +
             "WHERE iu.parent IS NULL " + // 제일 상위 Entity
             "AND iu.member.id = :memberId " +
             "AND iu.status != 'HIDE' " +
             "GROUP BY iu " +
-            "ORDER BY COALESCE(MAX(ir.createDate), iu.updateDate) DESC") // 검사 결과 날짜 최신순 또는 URL updateDate 최신순
+            "ORDER BY COALESCE(MAX(is.createDate), iu.updateDate) DESC") // 검사 결과 날짜 최신순 또는 URL updateDate 최신순
     Page<InspectionUrl> findParentInspectionUrlsByMemberId(@Param("memberId") Long memberId, Pageable pageable);
 
 
     @Query("SELECT i.id FROM InspectionUrl i WHERE i.member.id = :memberId AND i.url = :url")
     Optional<Long> findIdByMemberIdAndUrl(@Param("memberId") Long memberId, @Param("url") String url);
-
 }

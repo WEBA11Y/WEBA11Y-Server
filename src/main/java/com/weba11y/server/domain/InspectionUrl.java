@@ -3,7 +3,7 @@ package com.weba11y.server.domain;
 
 import com.weba11y.server.domain.common.BaseEntity;
 import com.weba11y.server.domain.enums.InspectionStatus;
-import com.weba11y.server.dto.InspectionUrl.InspectionUrlDto;
+import com.weba11y.server.dto.inspectionUrl.InspectionUrlDto;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
@@ -24,7 +24,7 @@ public class InspectionUrl extends BaseEntity {
     private Long id;
 
     @Column(nullable = false, length = 255)
-    private String summary;
+    private String description;
 
     @Column(nullable = false, length = 2048)
     private String url;
@@ -38,20 +38,21 @@ public class InspectionUrl extends BaseEntity {
     @JoinColumn(name = "parent_id")
     private InspectionUrl parent;
 
-    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-    @BatchSize(size = 10)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @BatchSize(size = 100)
     private Set<InspectionUrl> child = new HashSet<>();
+
+    @OneToMany(mappedBy = "inspectionUrl", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @BatchSize(size = 100)
+    private List<InspectionSummary> inspectionSummaries = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToMany(mappedBy = "inspectionUrl", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<InspectionResult> inspectionResults = new ArrayList<>();
-
     @Builder
-    public InspectionUrl(String summary, String url, Member member, String favicon) {
-        this.summary = summary;
+    public InspectionUrl(String description, String url, Member member, String favicon) {
+        this.description = description;
         this.url = url;
         this.member = member;
     }
@@ -69,8 +70,8 @@ public class InspectionUrl extends BaseEntity {
         parent.addChildUrl(this);
     }
 
-    public void addResult(InspectionResult inspectionResult) {
-        this.inspectionResults.add(inspectionResult);
+    public void addSummary(InspectionSummary inspectionSummary){
+        this.inspectionSummaries.add(inspectionSummary);
     }
 
     public void updateStatus(InspectionStatus status) {
@@ -95,7 +96,7 @@ public class InspectionUrl extends BaseEntity {
     public InspectionUrlDto toDto() {
         return InspectionUrlDto.builder()
                 .id(this.id)
-                .summary(this.summary)
+                .description(this.description)
                 .url(this.url)
                 .favicon(this.favicon)
                 .parentId(this.parent != null ? this.parent.getId() : null)
@@ -111,7 +112,7 @@ public class InspectionUrl extends BaseEntity {
     public InspectionUrlDto.Parent toParentDto() {
         return InspectionUrlDto.Parent.builder()
                 .id(this.id)
-                .summary(this.summary)
+                .description(this.description)
                 .url(this.url)
                 .favicon(this.favicon)
                 .createDate(this.getCreateDate())
@@ -120,7 +121,7 @@ public class InspectionUrl extends BaseEntity {
     }
 
     public void update(InspectionUrlDto.Request requestDto) {
-        this.summary = requestDto.getSummary();
+        this.description = requestDto.getDescription();
         this.url = requestDto.getUrl();
         onUpdate();
     }

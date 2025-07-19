@@ -1,4 +1,4 @@
-package com.weba11y.server.jpa.repository;
+package com.weba11y.server.repository;
 
 import com.weba11y.server.domain.InspectionUrl;
 
