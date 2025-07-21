@@ -5,9 +5,11 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Getter
 @MappedSuperclass
 public class BaseEntity {
@@ -30,6 +32,7 @@ public class BaseEntity {
     @PreUpdate
     protected void onUpdate() {
         updateDate = LocalDateTime.now();
+        log.info("[InspectionUrl onUpdate()] updateDate = {}", updateDate);
     }
 
     protected void onDelete(){

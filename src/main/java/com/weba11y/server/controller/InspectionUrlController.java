@@ -1,14 +1,8 @@
 package com.weba11y.server.controller;
 
 import com.weba11y.server.annotation.CurrentMemberId;
-import com.weba11y.server.domain.Member;
 import com.weba11y.server.dto.InspectionDetailDto;
-import com.weba11y.server.dto.accessibilityViolation.AccessibilityViolationDto;
-import com.weba11y.server.dto.inspectionSummary.InspectionSummaryDto;
 import com.weba11y.server.dto.inspectionUrl.InspectionUrlDto;
-import com.weba11y.server.service.AuthService;
-import com.weba11y.server.service.AccessibilityViolationService;
-import com.weba11y.server.service.InspectionSummaryService;
 import com.weba11y.server.service.InspectionUrlService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -46,17 +40,7 @@ public class InspectionUrlController {
     @GetMapping("/api/v1/urls/{id}")
     @Operation(summary = "선택한 URL 정보 조회", description = "선택한 URL의 정보를 조회합니다.")
     public ResponseEntity<InspectionDetailDto> getUrl(@PathVariable("id") Long urlId, @CurrentMemberId Long memberId) {
-        InspectionUrlDto.Response inspectionUrl = inspectionUrlService.retrieveUrl(urlId, memberId).toResponse();
-        List<InspectionSummaryDto.InspectionSummaryMetadataDto> inspectionSummaries = inspectionSummaryService.retrieveSummariesMetadataByUrlAndMember(urlId, memberId);
-        InspectionSummaryDto latestInspectionSummaryDto = inspectionSummaryService.retrieveLatestInspectionSummaryByUrlIdAndMemberId(urlId, memberId);
-        List<AccessibilityViolationDto> top5Violations = accessibilityViolationService.getTop5ViolationsBySummaryId(latestInspectionSummaryDto.getId());
-        InspectionDetailDto detailDto = InspectionDetailDto.builder()
-                .inspectionUrl(inspectionUrl)
-                .inspectionSummaries(inspectionSummaries)
-                .latestInspectionSummary(latestInspectionSummaryDto)
-                .top5Violations(top5Violations)
-                .build();
-        return ResponseEntity.ok().body(detailDto);
+        return ResponseEntity.ok().body(inspectionUrlService.getInspectionUrlDetail(urlId, memberId));
     }
 
     // URL
