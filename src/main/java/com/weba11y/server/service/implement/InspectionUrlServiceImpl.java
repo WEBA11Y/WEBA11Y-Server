@@ -6,6 +6,7 @@ import com.weba11y.server.dto.inspectionUrl.InspectionUrlDto;
 import com.weba11y.server.exception.custom.DuplicationUrlException;
 import com.weba11y.server.exception.custom.InvalidUrlException;
 import com.weba11y.server.repository.InspectionUrlRepository;
+import com.weba11y.server.service.AuthService;
 import com.weba11y.server.service.InspectionUrlService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class InspectionUrlServiceImpl implements InspectionUrlService {
     private final InspectionUrlRepository repository;
+    private final AuthService authService;
     private static final String URL_REGEX = "^(https?://)(www\\.)?([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}(/.*)?$";
 
     private static final Pattern URL_PATTERN = Pattern.compile(URL_REGEX);
@@ -44,7 +46,10 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
 
     @Transactional(value = "transactionManager")
     @Override
-    public InspectionUrlDto saveUrl(InspectionUrlDto.Request dto, Member member) {
+    public InspectionUrlDto saveUrl(InspectionUrlDto.Request dto, Long memberId) {
+        // findMember
+        Member member = authService.retrieveMember(memberId);
+
         // 이미 등록된 URL 인지 확인
         validateUrl(dto.getUrl(), member.getId());
         InspectionUrl newUrl;

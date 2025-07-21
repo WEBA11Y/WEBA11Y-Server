@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface InspectionUrlService {
 
-    InspectionUrlDto saveUrl(InspectionUrlDto.Request request, Member member);
+    InspectionUrlDto saveUrl(InspectionUrlDto.Request request, Long member);
 
     List<InspectionUrlDto.Response> retrieveAll(Long memberId);
 
