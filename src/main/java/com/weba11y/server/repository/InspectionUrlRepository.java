@@ -29,9 +29,9 @@ public interface InspectionUrlRepository extends JpaRepository<InspectionUrl, Lo
     Optional<Long> findIdByMemberIdAndUrl(@Param("memberId") Long memberId, @Param("url") String url);
 
     @Query("SELECT iu " +
-            "FROM InspectionUrl iu " +
+            "FROM InspectionUrl iu LEFT JOIN iu.inspectionSummaries is " +
             "WHERE iu.member.id = :memberId " +
-            "ORDER BY iu.updateDate desc " +
+            "ORDER BY is.updateDate desc " +
             "LIMIT 1")
     Optional<InspectionUrl> findLatestInspectionUrlByMemberId(@Param("memberId") Long memberId);
 }
