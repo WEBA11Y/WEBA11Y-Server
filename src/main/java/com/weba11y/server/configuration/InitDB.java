@@ -95,6 +95,8 @@ class InitService { // 외부 클래스로 변경
                 .inspectionUrl(inspectionUrl)
                 .build());
 
+        inspectionUrl.addSummary(inspectionSummary);
+
         for (int i = 0; i < 10; i++) {
             AccessibilityViolation result = AccessibilityViolation.builder()
                     .inspectionSummary(inspectionSummary)

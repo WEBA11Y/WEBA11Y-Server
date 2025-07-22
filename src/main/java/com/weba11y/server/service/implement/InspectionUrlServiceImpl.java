@@ -2,10 +2,16 @@ package com.weba11y.server.service.implement;
 
 import com.weba11y.server.domain.InspectionUrl;
 import com.weba11y.server.domain.Member;
+import com.weba11y.server.dto.InspectionDetailDto;
+import com.weba11y.server.dto.accessibilityViolation.AccessibilityViolationDto;
+import com.weba11y.server.dto.inspectionSummary.InspectionSummaryDto;
 import com.weba11y.server.dto.inspectionUrl.InspectionUrlDto;
 import com.weba11y.server.exception.custom.DuplicationUrlException;
 import com.weba11y.server.exception.custom.InvalidUrlException;
 import com.weba11y.server.repository.InspectionUrlRepository;
+import com.weba11y.server.service.AccessibilityViolationService;
+import com.weba11y.server.service.AuthService;
+import com.weba11y.server.service.InspectionSummaryService;
 import com.weba11y.server.service.InspectionUrlService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +40,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class InspectionUrlServiceImpl implements InspectionUrlService {
     private final InspectionUrlRepository repository;
+    private final AuthService authService;
+    private final InspectionSummaryService summaryService;
+    private final AccessibilityViolationService violationService;
     private static final String URL_REGEX = "^(https?://)(www\\.)?([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}(/.*)?$";
 
     private static final Pattern URL_PATTERN = Pattern.compile(URL_REGEX);
@@ -44,7 +53,10 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
 
     @Transactional(value = "transactionManager")
     @Override
-    public InspectionUrlDto saveUrl(InspectionUrlDto.Request dto, Member member) {
+    public InspectionUrlDto saveUrl(InspectionUrlDto.Request dto, Long memberId) {
+        // findMember
+        Member member = authService.retrieveMember(memberId);
+
         // 이미 등록된 URL 인지 확인
         validateUrl(dto.getUrl(), member.getId());
         InspectionUrl newUrl;
@@ -175,6 +187,28 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
         return repository.findByUrlId(urlId).orElseThrow(
                 () -> new NoSuchElementException("해당 URL을 찾을 수 없습니다.")
         );
+    }
+
+    @Override
+    public InspectionDetailDto getInspectionUrlDetail(Long urlId, Long memberId) {
+        InspectionUrlDto.Response inspectionUrl = urlId >= 0 ? retrieveUrl(urlId, memberId).toResponse()
+                : retrieveLatestUrl(memberId).toResponse();
+
+        List<InspectionSummaryDto.InspectionSummaryMetadataDto> inspectionSummaries = summaryService.retrieveSummariesMetadataByUrlAndMember(inspectionUrl.getId(), memberId);
+        InspectionSummaryDto latestInspectionSummaryDto = summaryService.retrieveLatestInspectionSummaryByUrlIdAndMemberId(inspectionUrl.getId(), memberId);
+        List<AccessibilityViolationDto> top5Violations = violationService.getTop5ViolationsBySummaryId(latestInspectionSummaryDto.getId());
+        return InspectionDetailDto.builder()
+                .inspectionUrl(inspectionUrl)
+                .inspectionSummaries(inspectionSummaries)
+                .latestInspectionSummary(latestInspectionSummaryDto)
+                .top5Violations(top5Violations)
+                .build();
+    }
+
+    private InspectionUrlDto retrieveLatestUrl(Long memberId) {
+        return repository.findLatestInspectionUrlByMemberId(memberId).orElseThrow(
+                () -> new NoSuchElementException("해당 URL을 찾을 수 없습니다.")
+        ).toDto();
     }
 
 }

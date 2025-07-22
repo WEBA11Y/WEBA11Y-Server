@@ -1,14 +1,8 @@
 package com.weba11y.server.controller;
 
 import com.weba11y.server.annotation.CurrentMemberId;
-import com.weba11y.server.domain.Member;
 import com.weba11y.server.dto.InspectionDetailDto;
-import com.weba11y.server.dto.accessibilityViolation.AccessibilityViolationDto;
-import com.weba11y.server.dto.inspectionSummary.InspectionSummaryDto;
 import com.weba11y.server.dto.inspectionUrl.InspectionUrlDto;
-import com.weba11y.server.service.AuthService;
-import com.weba11y.server.service.AccessibilityViolationService;
-import com.weba11y.server.service.InspectionSummaryService;
 import com.weba11y.server.service.InspectionUrlService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,18 +18,14 @@ import java.util.List;
 @Tag(name = "URL 관리 API", description = "URL을 관리하는 API입니다.")
 public class InspectionUrlController {
 
-    private final AuthService authService;
     private final InspectionUrlService inspectionUrlService;
-    private final InspectionSummaryService inspectionSummaryService;
-    private final AccessibilityViolationService accessibilityViolationService;
 
     // URL 등록
     @PostMapping("/api/v1/urls")
     @Operation(summary = "URL 등록", description = "URL을 등록합니다. ( 상위 URL이 있다면 해당 URL의 ID값을 추가하세요. )")
     public ResponseEntity<InspectionUrlDto.Response> registerUrl(@RequestBody @Valid InspectionUrlDto.Request requestDto,
                                                                  @CurrentMemberId Long memberId) {
-        Member member = authService.retrieveMember(memberId);
-        return ResponseEntity.ok().body(inspectionUrlService.saveUrl(requestDto, member).toResponse());
+        return ResponseEntity.ok().body(inspectionUrlService.saveUrl(requestDto, memberId).toResponse());
     }
 
     // 모든 URL 조회
@@ -50,18 +40,7 @@ public class InspectionUrlController {
     @GetMapping("/api/v1/urls/{id}")
     @Operation(summary = "선택한 URL 정보 조회", description = "선택한 URL의 정보를 조회합니다.")
     public ResponseEntity<InspectionDetailDto> getUrl(@PathVariable("id") Long urlId, @CurrentMemberId Long memberId) {
-
-        InspectionUrlDto.Response inspectionUrl = inspectionUrlService.retrieveUrl(urlId, memberId).toResponse();
-        List<InspectionSummaryDto.InspectionSummaryMetadataDto> inspectionSummaries = inspectionSummaryService.retrieveSummariesMetadataByUrlAndMember(urlId, memberId);
-        InspectionSummaryDto latestInspectionSummaryDto = inspectionSummaryService.retrieveLatestInspectionSummaryByUrlIdAndMemberId(urlId, memberId);
-        List<AccessibilityViolationDto> top5Violations = accessibilityViolationService.getTop5ViolationsBySummaryId(latestInspectionSummaryDto.getId());
-        InspectionDetailDto detailDto = InspectionDetailDto.builder()
-                .inspectionUrl(inspectionUrl)
-                .inspectionSummaries(inspectionSummaries)
-                .latestInspectionSummary(latestInspectionSummaryDto)
-                .top5Violations(top5Violations)
-                .build();
-        return ResponseEntity.ok().body(detailDto);
+        return ResponseEntity.ok().body(inspectionUrlService.getInspectionUrlDetail(urlId, memberId));
     }
 
     // URL
