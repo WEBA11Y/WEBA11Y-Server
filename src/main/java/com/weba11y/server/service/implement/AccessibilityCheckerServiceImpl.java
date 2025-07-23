@@ -35,13 +35,13 @@ public class AccessibilityCheckerServiceImpl implements AccessibilityCheckerServ
     @Override
     public List<AccessibilityViolationDto> runChecks(InspectionUrlDto inspectionUrl, SseEmitter sseEmitter) {
         Page page = pageLoaderService.getLoadedPage(inspectionUrl.getUrl());
-        InspectionSummary inspectionSummary = createInspectionSummary(findInspectionUrl(inspectionUrl.getId()));
+        InspectionSummary inspectionSummary = createInspectionSummary(retrieveInspectionUrl(inspectionUrl.getId()));
         Document document = Jsoup.parse(page.content());
         staticContentAccessibilityChecker.performCheck(document, sseEmitter, inspectionSummary);
         return null;
     }
 
-    private InspectionUrl findInspectionUrl(Long inspectionUrlId) {
+    private InspectionUrl retrieveInspectionUrl(Long inspectionUrlId) {
         return urlRepository.findById(inspectionUrlId).orElseThrow(
                 () -> new NoSuchElementException("InspectionUrl Not Found")
         );

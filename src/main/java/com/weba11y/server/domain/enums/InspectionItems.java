@@ -70,15 +70,15 @@ public enum InspectionItems {
         throw new IllegalArgumentException("No enum constant with number " + number);
     }
 
-    public static List<InspectionItems> findItemsByAssessmentLevel(AssessmentLevel assessmentLevel) {
+    public static List<InspectionItems> findItemsByAssessmentLevel(String assessmentLevel) {
         return Arrays.stream(InspectionItems.values())
-                .filter(item -> item.getAssessmentLevel() == assessmentLevel)
+                .filter(item -> item.getAssessmentLevel().name().equals(assessmentLevel.toUpperCase()))
                 .collect(Collectors.toList());
     }
 
-    public static List<InspectionItems> findItemsByImportance(Importance importance) {
+    public static List<InspectionItems> findItemsByImportance(String importance) {
         return Arrays.stream(InspectionItems.values())
-                .filter(item -> item.getImportance() == importance)
+                .filter(item -> item.getImportance().name().equals(importance.toUpperCase()))
                 .collect(Collectors.toList());
     }
 }

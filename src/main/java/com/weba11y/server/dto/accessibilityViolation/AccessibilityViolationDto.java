@@ -73,9 +73,10 @@ public class AccessibilityViolationDto {
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     public static class AccessibilityViolationsResponse {
-        @Builder.Default
-        private List<AccessibilityViolationDto> content = new ArrayList<>();
         private int totalPage;
         private int currentPage;
+        private LocalDateTime date; // InspectionSummary's CreateDate
+        @Builder.Default
+        private List<AccessibilityViolationDto> violations = new ArrayList<>();
     }
 }

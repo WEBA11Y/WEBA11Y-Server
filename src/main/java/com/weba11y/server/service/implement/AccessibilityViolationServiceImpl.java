@@ -44,7 +44,7 @@ public class AccessibilityViolationServiceImpl implements AccessibilityViolation
     public AccessibilityViolationDto.AccessibilityViolationsResponse getViolationsByImportance(
             int page,
             Long inspectionSummaryId,
-            Importance importance) {
+            String importance) {
         return getViolations(page, inspectionSummaryId, InspectionItems.findItemsByImportance(importance));
     }
 
@@ -52,7 +52,7 @@ public class AccessibilityViolationServiceImpl implements AccessibilityViolation
     public AccessibilityViolationDto.AccessibilityViolationsResponse getViolationsByAssessmentLevel(
             int page,
             Long inspectionSummaryId,
-            AssessmentLevel assessmentLevel) {
+            String assessmentLevel) {
         return getViolations(page, inspectionSummaryId, InspectionItems.findItemsByAssessmentLevel(assessmentLevel));
     }
 
@@ -68,7 +68,7 @@ public class AccessibilityViolationServiceImpl implements AccessibilityViolation
         Pageable pageable = PageRequest.of(page - 1, size);
         Page<AccessibilityViolation> list = accessibilityViolationRepository.findByInspectionSummaryIdAndItems(pageable, inspectionSummaryId, items);
         return AccessibilityViolationDto.AccessibilityViolationsResponse.builder()
-                .content(list.stream().map(AccessibilityViolation::toDto).collect(Collectors.toList()))
+                .violations(list.stream().map(AccessibilityViolation::toDto).collect(Collectors.toList()))
                 .totalPage(list.getTotalPages())
                 .currentPage(page)
                 .build();
