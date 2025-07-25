@@ -20,7 +20,7 @@ public class AltTextCheck implements AccessibilityChecker {
         for (String target : ALT_TEXT.getTargetTags()) {
             List<AccessibilityViolationDto> tagViolations = doc.select(target)
                     .stream()
-                    .filter(element -> !element.hasAttr("alt") || element.attr("atr").isEmpty())
+                    .filter(element -> !element.hasAttr("alt") || element.attr("alt").isEmpty())
                     .map(element -> {
                         log.debug("[AltTextCheck] ALT 누락 요소 발견: <{}>", element.tagName());
                         return AccessibilityViolationDto.createInspectionResultDto(element, ALT_TEXT);
