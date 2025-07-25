@@ -7,7 +7,7 @@ import com.weba11y.server.dto.accessibilityViolation.AccessibilityViolationDto;
 import jakarta.persistence.*;
 import lombok.*;
 
-import static com.weba11y.server.domain.enums.AccessibilityViolationStatus.*;
+import static com.weba11y.server.domain.enums.AccessibilityViolationStatus.PENDING;
 
 @Entity
 @Getter
@@ -30,7 +30,7 @@ public class AccessibilityViolation extends BaseEntity {
     @Column(nullable = false)
     private String description;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String codeLine;
 
     @Enumerated(EnumType.STRING)
@@ -56,6 +56,14 @@ public class AccessibilityViolation extends BaseEntity {
         this.inspectionSummary = inspectionSummary;
     }
 
+    public void setInspectionSummary(InspectionSummary inspectionSummary) {
+        this.inspectionSummary = inspectionSummary;
+    }
+
+    public void changeStatus(AccessibilityViolationStatus status) {
+        this.status = status;
+    }
+
     public AccessibilityViolationDto toDto() {
         return AccessibilityViolationDto.builder()
                 .id(this.id)
@@ -69,9 +77,4 @@ public class AccessibilityViolation extends BaseEntity {
                 .updateDate(this.getUpdateDate())
                 .build();
     }
-
-    public void complete() {
-        this.status = COMPLETED;
-    }
-
 }

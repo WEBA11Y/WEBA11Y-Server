@@ -1,7 +1,7 @@
 package com.weba11y.server.domain;
 
-
 import com.weba11y.server.domain.common.BaseEntity;
+import com.weba11y.server.domain.enums.AccessibilityViolationStatus;
 import com.weba11y.server.dto.inspectionSummary.InspectionSummaryDto;
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,30 +14,26 @@ import java.util.stream.Collectors;
 
 import static com.weba11y.server.domain.enums.AccessibilityViolationStatus.*;
 
-
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class InspectionSummary extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 전체 위반 개수
     @Builder.Default
     private Long totalViolations = 0L;
 
-    // 해결 된 위반 개수
     @Builder.Default
     private Long completedViolations = 0L;
 
-    // 미완료된 위반 개수
     @Builder.Default
     private Long pendingViolations = 0L;
 
-    // 오류로 분류된 위반 개수
     @Builder.Default
     private Long errorViolations = 0L;
 
@@ -45,33 +41,24 @@ public class InspectionSummary extends BaseEntity {
     @JoinColumn(name = "inspection_url_id")
     private InspectionUrl inspectionUrl;
 
-    @OneToMany(mappedBy = "inspectionSummary", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "inspectionSummary", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 100)
     @Builder.Default
     private List<AccessibilityViolation> accessibilityViolations = new ArrayList<>();
 
-    public void setTotalViolations(Long count) {
-        this.totalViolations = count;
+    public void addViolation(AccessibilityViolation violation) {
+        this.accessibilityViolations.add(violation);
+        violation.setInspectionSummary(this);
     }
 
-    public void setCompletedViolations(Long count) {
-        this.completedViolations = count;
-    }
-
-    public void setPendingViolations(Long count) {
-        this.pendingViolations = count;
-    }
-
-    public void setErrorViolations(Long count) {
-        this.errorViolations = count;
-    }
-
-    public void addAccessibilityViolation(AccessibilityViolation accessibilityViolation) {
-        this.accessibilityViolations.add(accessibilityViolation);
+    public void recalculateViolations() {
+        this.totalViolations = (long) this.accessibilityViolations.size();
+        this.completedViolations = this.accessibilityViolations.stream().filter(v -> v.getStatus() == COMPLETED).count();
+        this.pendingViolations = this.accessibilityViolations.stream().filter(v -> v.getStatus() == PENDING).count();
+        this.errorViolations = this.accessibilityViolations.stream().filter(v -> v.getStatus() == ERROR).count();
     }
 
     public InspectionSummaryDto toDto() {
-
         return InspectionSummaryDto.builder()
                 .id(this.id)
                 .inspectionUrlId(this.inspectionUrl.getId())
@@ -89,15 +76,15 @@ public class InspectionSummary extends BaseEntity {
                 .build();
     }
 
-
     public static InspectionSummaryDto.ViolationStatisticsDto toViolationStatisticsDto(List<AccessibilityViolation> violations) {
-        // 상태별 전체 집계
+        if (violations == null || violations.isEmpty()) {
+            return InspectionSummaryDto.ViolationStatisticsDto.createEmpty();
+        }
         long total = violations.size();
         long completed = violations.stream().filter(v -> v.getStatus() == COMPLETED).count();
         long pending = violations.stream().filter(v -> v.getStatus() == PENDING).count();
         long error = violations.stream().filter(v -> v.getStatus() == ERROR).count();
 
-        // 중요도별 집계
         Map<String, List<AccessibilityViolation>> byImportance = violations.stream()
                 .collect(Collectors.groupingBy(v -> v.getInspectionItem().getImportance().name()));
 
@@ -108,7 +95,6 @@ public class InspectionSummary extends BaseEntity {
                 .minor(toViolationCountDetail(byImportance.get("MINOR")))
                 .build();
 
-        // 평가 레벨별 집계
         Map<String, List<AccessibilityViolation>> byAssessment = violations.stream()
                 .collect(Collectors.groupingBy(v -> v.getInspectionItem().getAssessmentLevel().name()));
 
@@ -130,7 +116,7 @@ public class InspectionSummary extends BaseEntity {
     }
 
     private static InspectionSummaryDto.ViolationCountDetail toViolationCountDetail(List<AccessibilityViolation> violations) {
-        if (violations == null) return emptyViolationCountDetail();
+        if (violations == null) return InspectionSummaryDto.ViolationCountDetail.createEmpty();
         long total = violations.size();
         long completed = violations.stream().filter(v -> v.getStatus() == COMPLETED).count();
         long pending = violations.stream().filter(v -> v.getStatus() == PENDING).count();
@@ -143,12 +129,4 @@ public class InspectionSummary extends BaseEntity {
                 .error(error)
                 .build();
     }
-
-    private static InspectionSummaryDto.ViolationCountDetail emptyViolationCountDetail() {
-        return InspectionSummaryDto.ViolationCountDetail.builder()
-                .total(0).completed(0).pending(0).error(0)
-                .build();
-    }
-
 }
-
