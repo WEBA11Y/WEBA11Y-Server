@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@Transactional(value = "transactionManager", readOnly = true)
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class InspectionUrlServiceImpl implements InspectionUrlService {
     private final InspectionUrlRepository repository;
@@ -51,7 +51,7 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     @Value("${page.url-list.size}")
     private int size;
 
-    @Transactional(value = "transactionManager")
+    @Transactional
     @Override
     public InspectionUrlDto saveUrl(InspectionUrlDto.Request dto, Long memberId) {
         // findMember
@@ -123,7 +123,7 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     }
 
 
-    @Transactional(value = "transactionManager")
+    @Transactional
     @Override
     public InspectionUrlDto updateUrl(InspectionUrlDto.Request requestDto, Long urlId) {
         InspectionUrl url = retrieveUrlById(urlId);
@@ -132,7 +132,7 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
     }
 
     @Override
-    @Transactional(value = "transactionManager")
+    @Transactional
     public HttpStatus deleteUrl(List<Long> urlIds, Long memberId) {
         for (Long urlId : urlIds) {
             InspectionUrl url = retrieveUrlByIdAndMemberId(urlId, memberId);
@@ -211,4 +211,23 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
         ).toDto();
     }
 
+    @Override
+    public List<InspectionUrlDto.ChildUrlResponse> retrieveAllChildUrl(Long urlId, Long memberId) {
+        repository.findById(urlId)
+                .filter(url -> url.getMember().getId().equals(memberId))
+                .orElseThrow(() -> new NoSuchElementException("Parent URL not found or access denied."));
+
+        List<InspectionUrl> childUrls = repository.findAllByParentId(urlId);
+
+        return childUrls.stream()
+                .map(child -> InspectionUrlDto.ChildUrlResponse.builder()
+                        .id(child.getId())
+                        .description(child.getDescription())
+                        .url(child.getUrl())
+                        .favicon(child.getFavicon())
+                        .createDate(child.getCreateDate())
+                        .updateDate(child.getUpdateDate())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }
