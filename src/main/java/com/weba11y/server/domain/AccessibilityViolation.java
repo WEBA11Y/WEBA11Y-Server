@@ -67,6 +67,7 @@ public class AccessibilityViolation extends BaseEntity {
     public AccessibilityViolationDto toDto() {
         return AccessibilityViolationDto.builder()
                 .id(this.id)
+                .inspectionSummaryId(this.inspectionSummary.getId())
                 .inspectionItem(this.inspectionItem)
                 .assessmentLevel(this.inspectionItem.getAssessmentLevel())
                 .importance(this.inspectionItem.getImportance())
