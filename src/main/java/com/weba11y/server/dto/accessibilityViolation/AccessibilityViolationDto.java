@@ -24,6 +24,8 @@ public class AccessibilityViolationDto {
 
     private Long id;
 
+    private Long inspectionSummaryId;
+
     private InspectionItems inspectionItem;
 
     private AssessmentLevel assessmentLevel;
@@ -41,13 +43,14 @@ public class AccessibilityViolationDto {
     private LocalDateTime updateDate;
 
 
-    public static AccessibilityViolationDto createInspectionResultDto(Element element, InspectionItems inspectionItem) {
+    public static AccessibilityViolationDto createInspectionResultDto(Element element, InspectionItems inspectionItem, Long inspectionSummaryId) {
         String codeLine = element.outerHtml();
         if (codeLine.length() > 255) {
             codeLine = codeLine.substring(0, 255); // 255자까지 자르기
         }
 
         return AccessibilityViolationDto.builder()
+                .inspectionSummaryId(inspectionSummaryId)
                 .inspectionItem(inspectionItem)
                 .assessmentLevel(inspectionItem.getAssessmentLevel())
                 .importance(inspectionItem.getImportance())
@@ -73,10 +76,9 @@ public class AccessibilityViolationDto {
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     public static class AccessibilityViolationsResponse {
+        @Builder.Default
+        private List<AccessibilityViolationDto> content = new ArrayList<>();
         private int totalPage;
         private int currentPage;
-        private LocalDateTime date; // InspectionSummary's CreateDate
-        @Builder.Default
-        private List<AccessibilityViolationDto> violations = new ArrayList<>();
     }
 }
