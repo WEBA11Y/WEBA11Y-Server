@@ -29,11 +29,6 @@ public class WebSecurityConfig {
 
     @Value("${client.url}")
     private String clientUrl;
-    private AuthService authService;
-
-    public void setAuthService(AuthService authService) {
-        this.authService = authService;
-    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -44,12 +39,12 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v1/member/**").hasRole("USER")
                         .requestMatchers("/api/v1/urls/**").hasRole("USER")
-                        .requestMatchers("/api/v1/inspection-results/**").hasRole("USER")
-                        .requestMatchers("/api/v1/inspection-date/**").hasRole("USER")
+                        .requestMatchers("/api/v1/violations/**").hasRole("USER")
+                        .requestMatchers("/api/v1/inspection-summaries/**").hasRole("USER")
                         .requestMatchers("/api/v1/accessibility/**").hasRole("USER")
                         .anyRequest().permitAll()
                 )
-                .addFilterBefore(new JwtFilter(authService, secret), UsernamePasswordAuthenticationFilter.class) // Filter 동작 이전에 JWT Filter동작
+                .addFilterBefore(new JwtFilter(secret), UsernamePasswordAuthenticationFilter.class) // Filter 동작 이전에 JWT Filter동작
                 .build();
     }
 
