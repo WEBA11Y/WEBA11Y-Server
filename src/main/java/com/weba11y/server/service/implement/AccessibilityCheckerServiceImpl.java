@@ -1,11 +1,9 @@
 package com.weba11y.server.service.implement;
 
-import com.microsoft.playwright.Page;
-import com.weba11y.server.checker.AccessibilityChecker;
+import com.weba11y.server.checker.SseEventSender;
 import com.weba11y.server.checker.StaticContentAccessibilityChecker;
 import com.weba11y.server.domain.InspectionSummary;
 import com.weba11y.server.domain.InspectionUrl;
-import com.weba11y.server.dto.accessibilityViolation.AccessibilityViolationDto;
 import com.weba11y.server.dto.inspectionUrl.InspectionUrlDto;
 import com.weba11y.server.repository.InspectionSummaryRepository;
 import com.weba11y.server.repository.InspectionUrlRepository;
@@ -15,11 +13,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 
 @Slf4j
@@ -31,14 +29,44 @@ public class AccessibilityCheckerServiceImpl implements AccessibilityCheckerServ
     private final StaticContentAccessibilityChecker staticContentAccessibilityChecker;
     private final InspectionUrlRepository urlRepository;
     private final InspectionSummaryRepository summaryRepository;
+    private final SseEventSender sseEventSender;
 
     @Override
-    public List<AccessibilityViolationDto> runChecks(InspectionUrlDto inspectionUrl, SseEmitter sseEmitter) {
-        Page page = pageLoaderService.getLoadedPage(inspectionUrl.getUrl());
-        InspectionSummary inspectionSummary = createInspectionSummary(retrieveInspectionUrl(inspectionUrl.getId()));
-        Document document = Jsoup.parse(page.content());
-        staticContentAccessibilityChecker.performCheck(document, sseEmitter, inspectionSummary);
-        return null;
+    public SseEmitter runChecks(InspectionUrlDto inspectionUrl, Long memberId) {
+        SseEmitter emitter = new SseEmitter(3600000L); // 1시간 타임아웃
+        emitter.onCompletion(() -> log.info("SSE completed for client."));
+        emitter.onTimeout(() -> log.warn("SSE timed out for client."));
+        emitter.onError(e -> log.error("SSE error for client: ", e));
+
+        sseEventSender.send(emitter, "connect", "Connection established. Starting accessibility check...");
+
+        runChecksAsync(inspectionUrl, emitter);
+
+        return emitter;
+    }
+
+    @Async("taskExecutor")
+    public void runChecksAsync(InspectionUrlDto inspectionUrl, SseEmitter emitter) {
+        try {
+            String content = pageLoaderService.getLoadedPage(inspectionUrl.getUrl()).content();
+            InspectionSummary inspectionSummary = createInspectionSummary(retrieveInspectionUrl(inspectionUrl.getId()));
+            Document document = Jsoup.parse(content);
+
+            staticContentAccessibilityChecker.performCheck(document, emitter, inspectionSummary)
+                    .exceptionally(ex -> {
+                        handleAsyncException(emitter, ex);
+                        return null;
+                    });
+
+        } catch (Exception e) {
+            handleAsyncException(emitter, e);
+        }
+    }
+
+    private void handleAsyncException(SseEmitter emitter, Throwable ex) {
+        log.error("Error during accessibility check process", ex);
+        sseEventSender.sendErrorEvent(emitter, "Failed to start check: " + ex.getMessage());
+        emitter.completeWithError(ex);
     }
 
     private InspectionUrl retrieveInspectionUrl(Long inspectionUrlId) {
@@ -49,7 +77,7 @@ public class AccessibilityCheckerServiceImpl implements AccessibilityCheckerServ
 
     @Transactional
     public InspectionSummary createInspectionSummary(InspectionUrl inspectionUrl) {
-        log.info("[StaticCheckerImpl] Creating Inspection Summary...");
+        log.info("[AccessibilityCheckerServiceImpl] Creating Inspection Summary...");
         try {
             return summaryRepository.save(InspectionSummary.builder()
                     .inspectionUrl(inspectionUrl)
@@ -59,5 +87,4 @@ public class AccessibilityCheckerServiceImpl implements AccessibilityCheckerServ
             throw new RuntimeException("Failed to create Inspection Summary", e);
         }
     }
-
 }
