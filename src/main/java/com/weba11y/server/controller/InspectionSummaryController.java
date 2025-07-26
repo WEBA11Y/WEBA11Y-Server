@@ -3,6 +3,7 @@ package com.weba11y.server.controller;
 
 import com.weba11y.server.annotation.CurrentMemberId;
 import com.weba11y.server.service.InspectionSummaryService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,16 +21,8 @@ import java.util.List;
 public class InspectionSummaryController {
     private final InspectionSummaryService inspectionSummaryService;
 
-    @GetMapping("/inspection_summaries")
-    private ResponseEntity<List> getInspectionSummaries(
-            @CurrentMemberId Long memberId,
-            @RequestParam("urlId") Long urlId) {
-        return ResponseEntity
-                .ok()
-                .body(inspectionSummaryService.retrieveAllByUrlIdAndMemberId(urlId, memberId));
-    }
-
-    @GetMapping("/inspection_summaries/metedata")
+    @GetMapping("/inspection-summaries/metadata")
+    @Operation(summary = "검사 결과 요약 Metadata 리스트")
     private ResponseEntity<List> getInspectionSummariesMataData(
             @CurrentMemberId Long memberId,
             @RequestParam("urlId") Long urlId) {

@@ -34,21 +34,11 @@ public class InspectionSummaryServiceImpl implements InspectionSummaryService {
     }
 
     @Override
-    public List<InspectionSummaryDto> retrieveAllByUrlIdAndMemberId(Long urlId, Long memberID) {
-        return null;
-    }
-
-    @Override
     public List<InspectionSummaryDto.InspectionSummaryMetadataDto> retrieveSummariesMetadataByUrlAndMember(Long urlId, Long memberId) {
         return inspectionSummaryRepository.findAllByUrlIdAndMemberId(urlId, memberId)
                 .stream()
                 .map(InspectionSummary::toMetadataDto)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public InspectionSummaryDto retrieveByIdAndUrlIdAndMemberId(Long inspectionSummaryId, Long urlId, Long memberId) {
-        return null;
     }
 
     @Override
