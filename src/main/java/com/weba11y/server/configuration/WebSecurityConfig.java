@@ -1,8 +1,7 @@
 package com.weba11y.server.configuration;
 
-
 import com.weba11y.server.filter.JwtFilter;
-import com.weba11y.server.service.AuthService;
+import jakarta.servlet.DispatcherType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +17,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+
+import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasRole;
 
 @Slf4j
 @Configuration
@@ -37,11 +38,12 @@ public class WebSecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 추가
                 .csrf(csrf -> csrf.disable()) // csrf 기본 설정
                 .authorizeHttpRequests(authorize -> authorize
+                        .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
+                        .requestMatchers("/api/v1/accessibility/**").access(hasRole("USER"))
                         .requestMatchers("/api/v1/member/**").hasRole("USER")
                         .requestMatchers("/api/v1/urls/**").hasRole("USER")
                         .requestMatchers("/api/v1/violations/**").hasRole("USER")
                         .requestMatchers("/api/v1/inspection-summaries/**").hasRole("USER")
-                        .requestMatchers("/api/v1/accessibility/**").hasRole("USER")
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(new JwtFilter(secret), UsernamePasswordAuthenticationFilter.class) // Filter 동작 이전에 JWT Filter동작
@@ -68,3 +70,4 @@ public class WebSecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
+
