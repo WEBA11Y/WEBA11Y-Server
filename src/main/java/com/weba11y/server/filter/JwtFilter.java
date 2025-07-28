@@ -9,6 +9,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -29,20 +30,16 @@ public class JwtFilter extends OncePerRequestFilter {
     private final String secret;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
 
         logRequestDetails(request);
 
-        try {
-            extractToken(request)
-                    .flatMap(this::validateAndParseToken)
-                    .ifPresent(tokenInfo -> setAuthentication(tokenInfo, request));
-        } catch (ExpiredJwtException e) {
-            log.warn("Token has expired: {}", e.getMessage());
-        } catch (MalformedJwtException e) {
-            log.warn("Invalid token: {}", e.getMessage());
-        }
+        extractToken(request)
+                .flatMap(this::validateAndParseToken)
+                .ifPresent(tokenInfo -> setAuthentication(tokenInfo, request));
 
         filterChain.doFilter(request, response);
     }
@@ -64,8 +61,15 @@ public class JwtFilter extends OncePerRequestFilter {
         try {
             JwtUtil.validateToken(token, secret);
             return Optional.of(JwtUtil.getTokenInfo(token, secret));
+        } catch (ExpiredJwtException e) {
+            log.warn("Token has expired: {}", e.getMessage());
+            return Optional.empty();
+        } catch (MalformedJwtException e) {
+            log.warn("Invalid token: {}", e.getMessage());
+            return Optional.empty();
         } catch (Exception e) {
-            throw e;
+            log.error("An unexpected error occurred during token validation. {}", e.getMessage());
+            return Optional.empty();
         }
     }
 
