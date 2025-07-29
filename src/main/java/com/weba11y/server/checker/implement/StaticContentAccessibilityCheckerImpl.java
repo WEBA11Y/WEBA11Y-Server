@@ -51,7 +51,6 @@ public class StaticContentAccessibilityCheckerImpl implements StaticContentAcces
                         updateInspectionSummary(inspectionSummary, totalViolations);
 
                         log.info("[StaticCheckerImpl] Finished all checks for inspection: {}. Total violations: {}", inspectionSummary.getId(), totalViolations.size());
-                        emitter.complete();
                     });
 
         } catch (Exception e) {
@@ -65,7 +64,6 @@ public class StaticContentAccessibilityCheckerImpl implements StaticContentAcces
         inspectionSummary.recalculateViolations();
         inspectionSummaryRepository.save(inspectionSummary);
     }
-
     private void handleException(SseEmitter emitter, Throwable ex, Long inspectionId) {
         log.error("[StaticCheckerImpl] Error during accessibility check for inspection: {}", inspectionId, ex);
         sseEventSender.sendErrorEvent(emitter, "An error occurred during the check: " + ex.getMessage());
