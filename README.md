@@ -139,7 +139,7 @@ public void runChecksAsync(InspectionUrlDto inspectionUrl, SseEmitter emitter) {
 }
 ```
 
-### 4.2. 안정성 확보를 위한 동적 검사 로직 개선
+### 안정성 확보를 위한 동적 검사 로직 개선
 
 **문제점 (Challenge):**
 초기 구현에서는 여러 동적 검사(`DynamicChecker` 구현체들)를 `CompletableFuture`를 이용해 병렬로 실행했습니다. 이는 성능상 이점이 있었지만, 여러 검사기가 하나의 `Page` 객체를 동시에 제어하려 하면서 **경합 상태(Race Condition)**가 발생하는 문제가 있었습니다. 예를 들어, 한 검사기가 특정 요소를 분석하는 동안 다른 검사기가 페이지를 이동시키거나 팝업을 닫아버리면, 원래 검사기는 더 이상 유효하지 않은 요소(stale element)나 프레임에 접근하려다 `PlaywrightException`을 발생시켰습니다.
