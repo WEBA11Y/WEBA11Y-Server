@@ -7,5 +7,4 @@ import java.util.List;
 
 public interface AccessibilityChecker {
     List<AccessibilityViolationDto> check(Document doc, Long inspectionSummaryId);
-
 }
