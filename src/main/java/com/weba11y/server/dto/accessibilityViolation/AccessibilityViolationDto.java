@@ -1,5 +1,6 @@
 package com.weba11y.server.dto.accessibilityViolation;
 
+import com.microsoft.playwright.ElementHandle;
 import com.weba11y.server.domain.AccessibilityViolation;
 import com.weba11y.server.domain.InspectionSummary;
 import com.weba11y.server.domain.enums.AssessmentLevel;
@@ -43,12 +44,35 @@ public class AccessibilityViolationDto {
     private LocalDateTime updateDate;
 
 
-    public static AccessibilityViolationDto createInspectionResultDto(Element element, InspectionItems inspectionItem, Long inspectionSummaryId) {
+    public static AccessibilityViolationDto createViolationDto(Element element, InspectionItems inspectionItem, Long inspectionSummaryId) {
         String codeLine = element.outerHtml();
         if (codeLine.length() > 255) {
             codeLine = codeLine.substring(0, 255); // 255자까지 자르기
         }
 
+        return getBuild(inspectionItem, inspectionSummaryId, codeLine);
+    }
+
+    public static AccessibilityViolationDto createViolationDto(ElementHandle element, InspectionItems inspectionItem, Long inspectionSummaryId) {
+        String codeLine;
+
+        try {
+            // Playwright evaluate()로 해당 요소의 outerHTML 가져오기
+            codeLine = element.evaluate("el => el.outerHTML").toString();
+        } catch (Exception e) {
+            codeLine = "<unavailable>"; // HTML 추출 실패 시 기본값
+        }finally {
+            element.dispose();
+        }
+
+        if (codeLine.length() > 255) {
+            codeLine = codeLine.substring(0, 255);
+        }
+
+        return getBuild(inspectionItem, inspectionSummaryId, codeLine);
+    }
+
+    private static AccessibilityViolationDto getBuild(InspectionItems inspectionItem, Long inspectionSummaryId, String codeLine) {
         return AccessibilityViolationDto.builder()
                 .inspectionSummaryId(inspectionSummaryId)
                 .inspectionItem(inspectionItem)
