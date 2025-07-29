@@ -25,6 +25,10 @@ public class InspectionSummary extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private com.weba11y.server.domain.enums.InspectionStatus status = com.weba11y.server.domain.enums.InspectionStatus.PENDING;
+
     @Builder.Default
     private Long totalViolations = 0L;
 
@@ -45,6 +49,10 @@ public class InspectionSummary extends BaseEntity {
     @BatchSize(size = 100)
     @Builder.Default
     private List<AccessibilityViolation> accessibilityViolations = new ArrayList<>();
+
+    public void updateStatus(com.weba11y.server.domain.enums.InspectionStatus status) {
+        this.status = status;
+    }
 
     public void addViolation(AccessibilityViolation violation) {
         this.accessibilityViolations.add(violation);
