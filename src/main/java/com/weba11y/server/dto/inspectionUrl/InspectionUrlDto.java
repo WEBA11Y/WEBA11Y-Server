@@ -2,7 +2,6 @@ package com.weba11y.server.dto.inspectionUrl;
 
 import com.weba11y.server.domain.InspectionUrl;
 import com.weba11y.server.domain.Member;
-import com.weba11y.server.dto.inspectionSummary.InspectionSummaryDto;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -107,7 +106,7 @@ public class InspectionUrlDto {
         @Builder
         @NoArgsConstructor(access = AccessLevel.PROTECTED)
         @AllArgsConstructor(access = AccessLevel.PROTECTED)
-        private static class ChildUrl {
+        public static class ChildUrl {
             private Long id;
             private String description;
             private String url;
@@ -133,6 +132,18 @@ public class InspectionUrlDto {
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     public static class Parent {
+        private Long id;
+        private String description;
+        private String url;
+        private String favicon;
+        private LocalDateTime createDate;
+        private LocalDateTime updateDate;
+    }
+    @Getter
+    @Builder
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class ChildUrlResponse {
         private Long id;
         private String description;
         private String url;

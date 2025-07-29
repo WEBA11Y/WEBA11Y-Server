@@ -6,19 +6,16 @@ import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AltTextCheck extends AbstractAccessibilityChecker {
+public class AutoPlayCheck extends AbstractAccessibilityChecker {
 
     @Override
     protected InspectionItems getItem() {
-        return InspectionItems.ALT_TEXT;
+        return InspectionItems.AUTO_PLAY;
     }
 
     @Override
     protected boolean isViolation(Element element) {
-        return !element.hasAttr("alt") || element.attr("alt").isBlank();
+        return element.hasAttr("autoplay");
     }
 }
-
-
-
 

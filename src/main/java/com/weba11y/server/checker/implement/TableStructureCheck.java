@@ -6,19 +6,15 @@ import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AltTextCheck extends AbstractAccessibilityChecker {
-
+public class TableStructureCheck extends AbstractAccessibilityChecker {
     @Override
     protected InspectionItems getItem() {
-        return InspectionItems.ALT_TEXT;
+        return InspectionItems.TABLE_STRUCTURE;
     }
 
     @Override
     protected boolean isViolation(Element element) {
-        return !element.hasAttr("alt") || element.attr("alt").isBlank();
+        return element.tagName().equals("table") &&
+                element.select("th").isEmpty();  // 제목 셀 없는 경우
     }
 }
-
-
-
-

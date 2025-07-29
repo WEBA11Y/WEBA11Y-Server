@@ -1,11 +1,12 @@
 package com.weba11y.server.service.implement;
 
 import com.weba11y.server.domain.AccessibilityViolation;
-import com.weba11y.server.domain.enums.AssessmentLevel;
-import com.weba11y.server.domain.enums.Importance;
+import com.weba11y.server.domain.InspectionSummary;
+import com.weba11y.server.domain.enums.AccessibilityViolationStatus;
 import com.weba11y.server.domain.enums.InspectionItems;
 import com.weba11y.server.dto.accessibilityViolation.AccessibilityViolationDto;
 import com.weba11y.server.repository.AccessibilityViolationRepository;
+import com.weba11y.server.repository.InspectionSummaryRepository;
 import com.weba11y.server.service.AccessibilityViolationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,35 +17,27 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
-
 
 @Slf4j
 @Service
-@Transactional(value = "transactionManager", readOnly = true)
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class AccessibilityViolationServiceImpl implements AccessibilityViolationService {
 
     private final AccessibilityViolationRepository accessibilityViolationRepository;
-
+    private final InspectionSummaryRepository inspectionSummaryRepository;
 
     @Value("${page.result.size}")
     private int size;
 
     @Override
-    public List<AccessibilityViolationDto> getViolationsByInspectionSummaryId(Long inspectionSummaryId) {
-        return accessibilityViolationRepository.findByInspectionSummaryId(inspectionSummaryId)
-                .stream()
-                .map(AccessibilityViolation::toDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     public AccessibilityViolationDto.AccessibilityViolationsResponse getViolationsByImportance(
             int page,
             Long inspectionSummaryId,
-            Importance importance) {
+            String importance) {
         return getViolations(page, inspectionSummaryId, InspectionItems.findItemsByImportance(importance));
     }
 
@@ -52,7 +45,7 @@ public class AccessibilityViolationServiceImpl implements AccessibilityViolation
     public AccessibilityViolationDto.AccessibilityViolationsResponse getViolationsByAssessmentLevel(
             int page,
             Long inspectionSummaryId,
-            AssessmentLevel assessmentLevel) {
+            String assessmentLevel) {
         return getViolations(page, inspectionSummaryId, InspectionItems.findItemsByAssessmentLevel(assessmentLevel));
     }
 
@@ -72,5 +65,29 @@ public class AccessibilityViolationServiceImpl implements AccessibilityViolation
                 .totalPage(list.getTotalPages())
                 .currentPage(page)
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public AccessibilityViolation save(AccessibilityViolationDto accessibilityViolationDto) {
+        InspectionSummary inspectionSummary = inspectionSummaryRepository.findById(accessibilityViolationDto.getInspectionSummaryId())
+                .orElseThrow(() -> new NoSuchElementException("InspectionSummary not found"));
+        AccessibilityViolation accessibilityViolation = accessibilityViolationDto.toEntity(inspectionSummary);
+        inspectionSummary.addViolation(accessibilityViolation);
+        inspectionSummary.recalculateViolations();
+        return accessibilityViolationRepository.save(accessibilityViolation);
+    }
+
+    @Override
+    @Transactional
+    public AccessibilityViolation updateViolationStatus(Long violationId, AccessibilityViolationStatus status) {
+        AccessibilityViolation violation = accessibilityViolationRepository.findById(violationId)
+                .orElseThrow(() -> new NoSuchElementException("AccessibilityViolation not found with id: " + violationId));
+        violation.changeStatus(status);
+
+        InspectionSummary summary = violation.getInspectionSummary();
+        summary.recalculateViolations();
+
+        return violation;
     }
 }

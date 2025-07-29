@@ -6,12 +6,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface InspectionUrlRepository extends JpaRepository<InspectionUrl, Long>, InspectionUrlCustomRepository {
     List<InspectionUrl> findAllByMemberIdAndParentId(Long memberId, Long parentId);
 
@@ -34,4 +32,7 @@ public interface InspectionUrlRepository extends JpaRepository<InspectionUrl, Lo
             "ORDER BY is.updateDate desc " +
             "LIMIT 1")
     Optional<InspectionUrl> findLatestInspectionUrlByMemberId(@Param("memberId") Long memberId);
+
+    @Query("SELECT i FROM InspectionUrl i LEFT JOIN FETCH i.child WHERE i.parent.id = :parentId")
+    List<InspectionUrl> findAllByParentId(@Param("parentId") Long parentId);
 }

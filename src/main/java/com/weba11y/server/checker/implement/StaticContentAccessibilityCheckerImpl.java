@@ -1,70 +1,72 @@
 package com.weba11y.server.checker.implement;
 
+import com.weba11y.server.checker.AccessibilityChecker;
 import com.weba11y.server.checker.SseEventSender;
 import com.weba11y.server.checker.StaticContentAccessibilityChecker;
 import com.weba11y.server.domain.InspectionSummary;
 import com.weba11y.server.dto.accessibilityViolation.AccessibilityViolationDto;
-import com.weba11y.server.repository.AccessibilityViolationRepository;
 import com.weba11y.server.repository.InspectionSummaryRepository;
-import com.weba11y.server.repository.InspectionUrlRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import static com.weba11y.server.domain.enums.InspectionItems.ALT_TEXT;
-
 @Slf4j
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class StaticContentAccessibilityCheckerImpl implements StaticContentAccessibilityChecker {
 
-    private final AccessibilityViolationRepository accessibilityViolationRepository;
+    private final List<AccessibilityChecker> checkers;
     private final SseEventSender sseEventSender;
+    private final InspectionSummaryRepository inspectionSummaryRepository;
 
     @Override
     @Async("taskExecutor")
+    @Transactional
     public CompletableFuture<Void> performCheck(Document document, SseEmitter emitter, InspectionSummary inspectionSummary) {
-        log.info("[StaticCheckerImpl] Starting static content accessibility check.");
-        altTextCheck(document, emitter, inspectionSummary);
-        return CompletableFuture.completedFuture(null);
-    }
+        log.info("[StaticCheckerImpl] Starting static content accessibility check for inspection: {}", inspectionSummary.getId());
 
-    private void altTextCheck(Document document, SseEmitter emitter, InspectionSummary inspectionSummary) {
-        log.info("[StaticCheckerImpl] Start alternative text accessibility check...");
-        List<AccessibilityViolationDto> violations = new ArrayList<>();
         try {
-            for (String target : ALT_TEXT.getTargetTags()) {
-                for (Element element : document.select(target)) {
-                    if (!element.hasAttr("alt") || element.attr("alt").isEmpty()) {
-                        AccessibilityViolationDto violation = AccessibilityViolationDto.createInspectionResultDto(element, ALT_TEXT);
-                        violations.add(violation);
-                        sseEventSender.sendViolationEvent(emitter, violation);
-                    }
-                }
-            }
-            saveViolations(violations, inspectionSummary);
+            List<CompletableFuture<List<AccessibilityViolationDto>>> futures = checkers.stream()
+                    .map(checker -> CompletableFuture.supplyAsync(() -> {
+                        List<AccessibilityViolationDto> violations = checker.check(document, inspectionSummary.getId());
+                        violations.forEach(violation -> sseEventSender.sendViolationEvent(emitter, violation));
+                        return violations;
+                    }))
+                    .collect(Collectors.toList());
+
+            return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                    .thenAccept(v -> {
+                        List<AccessibilityViolationDto> totalViolations = futures.stream()
+                                .flatMap(future -> future.join().stream())
+                                .collect(Collectors.toList());
+
+                        updateInspectionSummary(inspectionSummary, totalViolations);
+
+                        log.info("[StaticCheckerImpl] Finished all checks for inspection: {}. Total violations: {}", inspectionSummary.getId(), totalViolations.size());
+                    });
+
         } catch (Exception e) {
-            sseEventSender.sendErrorEvent(emitter, "Static content check failed: " + e.getMessage());
+            handleException(emitter, e, inspectionSummary.getId());
+            return CompletableFuture.failedFuture(e);
         }
     }
 
-    @Async
-    @Transactional
-    protected void saveViolations(List<AccessibilityViolationDto> violations, InspectionSummary inspectionSummary) {
-        accessibilityViolationRepository.saveAll(violations.stream()
-                .map(violation -> violation.toEntity(inspectionSummary)).collect(Collectors.toList()));
+    private void updateInspectionSummary(InspectionSummary inspectionSummary, List<AccessibilityViolationDto> totalViolations) {
+        totalViolations.forEach(dto -> inspectionSummary.addViolation(dto.toEntity(inspectionSummary)));
+        inspectionSummary.recalculateViolations();
+        inspectionSummaryRepository.save(inspectionSummary);
     }
-
-
+    private void handleException(SseEmitter emitter, Throwable ex, Long inspectionId) {
+        log.error("[StaticCheckerImpl] Error during accessibility check for inspection: {}", inspectionId, ex);
+        sseEventSender.sendErrorEvent(emitter, "An error occurred during the check: " + ex.getMessage());
+        emitter.completeWithError(ex);
+    }
 }

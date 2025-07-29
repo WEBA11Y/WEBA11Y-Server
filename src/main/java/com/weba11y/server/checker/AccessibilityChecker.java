@@ -6,6 +6,5 @@ import org.jsoup.nodes.Document;
 import java.util.List;
 
 public interface AccessibilityChecker {
-    List<AccessibilityViolationDto> check(List<AccessibilityViolationDto> violations, Document doc);
-
+    List<AccessibilityViolationDto> check(Document doc, Long inspectionSummaryId);
 }

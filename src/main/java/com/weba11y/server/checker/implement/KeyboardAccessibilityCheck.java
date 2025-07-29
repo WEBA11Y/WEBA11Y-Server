@@ -6,19 +6,18 @@ import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AltTextCheck extends AbstractAccessibilityChecker {
-
+public class KeyboardAccessibilityCheck extends AbstractAccessibilityChecker {
     @Override
     protected InspectionItems getItem() {
-        return InspectionItems.ALT_TEXT;
+        return InspectionItems.KEYBOARD_ACCESSIBILITY;
     }
 
     @Override
     protected boolean isViolation(Element element) {
-        return !element.hasAttr("alt") || element.attr("alt").isBlank();
+        return element.hasAttr("onclick") &&
+                !element.hasAttr("tabindex") &&
+                !element.hasAttr("onkeypress") &&
+                !element.tagName().equalsIgnoreCase("a");
     }
 }
-
-
-
 

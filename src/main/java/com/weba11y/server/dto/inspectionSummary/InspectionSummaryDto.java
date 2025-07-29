@@ -30,6 +30,27 @@ public class InspectionSummaryDto {
         private long errorViolations;
         private ImportanceBreakdownDto importance;
         private AssessmentLevelBreakdownDto assessmentLevel;
+
+        public static ViolationStatisticsDto createEmpty() {
+            return ViolationStatisticsDto.builder()
+                    .totalViolations(0)
+                    .completedViolations(0)
+                    .pendingViolations(0)
+                    .errorViolations(0)
+                    .importance(ImportanceBreakdownDto.builder()
+                            .critical(ViolationCountDetail.createEmpty())
+                            .serious(ViolationCountDetail.createEmpty())
+                            .moderate(ViolationCountDetail.createEmpty())
+                            .minor(ViolationCountDetail.createEmpty())
+                            .build())
+                    .assessmentLevel(AssessmentLevelBreakdownDto.builder()
+                            .A(ViolationCountDetail.createEmpty())
+                            .AA(ViolationCountDetail.createEmpty())
+                            .AAA(ViolationCountDetail.createEmpty())
+                            .BEST(ViolationCountDetail.createEmpty())
+                            .build())
+                    .build();
+        }
     }
 
     // 중요도(Importance)별 통계를 위한 DTO
@@ -66,6 +87,15 @@ public class InspectionSummaryDto {
         private long completed;
         private long pending;
         private long error;
+
+        public static ViolationCountDetail createEmpty() {
+            return ViolationCountDetail.builder()
+                    .total(0)
+                    .completed(0)
+                    .pending(0)
+                    .error(0)
+                    .build();
+        }
     }
 
     @Getter
