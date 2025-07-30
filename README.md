@@ -4,7 +4,6 @@
 
 **WEBA11Y**는 KWCAG 2.2 기반으로 웹 페이지의 **정적/동적 웹 접근성 검사를 수행**하는 서버 애플리케이션입니다. 주요 특징은 **SPA 지원, Playwright 기반 동적 검사, JPA Batch 성능 최적화, 실시간 SSE 이벤트 전송**입니다.
 
-- **개발 환경**: Java 17, Spring Boot 3.3.7, MariaDB, JPA (Hibernate), Playwright, Jsoup, JWT, JUnit5
 - **핵심 목표**: 웹 페이지의 접근성 표준(KWCAG 2.2, WCAG 2.1)을 준수하는지 검사하고, **검사 결과를 실시간으로 전송 및 DB 저장**
 - **검사 항목**: KWCAG 2.2 기준 33개 항목 (정적 26개, 동적 7개)
 - **결과 처리**: SSE 기반 실시간 피드백, DB 저장 및 위반 요약 리포트 생성
@@ -13,13 +12,13 @@
 
 ## 기술 스택
 
-- **Backend:** Java 17, Spring Boot 3.x
-- **Database:** H2 (for local), MySQL / PostgreSQL (production ready), JPA/Hibernate
+- **Backend:** Java 17, Spring Boot 3.3.7
+- **Database:** H2 (for local), MariaDB, JPA/Hibernate, Redis
 - **Web Crawling & Parsing:**
     - **Playwright:** 동적 콘텐츠 및 사용자 상호작용 시뮬레이션을 위한 헤드리스 브라우저 자동화
     - **Jsoup:** 정적 HTML 콘텐츠 파싱
 - **Asynchronous & Real-time:**
-    - **Spring WebFlux (SseEmitter):** 서버-클라이언트 간 단방향 실시간 데이터 스트리밍
+    - **SSE:** 서버-클라이언트 간 단방향 실시간 데이터 스트리밍
     - **`@Async` & `CompletableFuture`:** 시간이 많이 걸리는 검사 로직의 비동기 처리
 - **API & Documentation:** Spring Web MVC (RESTful API), Swagger (API 문서 자동화)
 - **Authentication:** Spring Security, JWT (JSON Web Token)
@@ -77,7 +76,7 @@ sequenceDiagram
 
 ### **Playwright 기반 동적 검사 안정화**
 
-- SPA(React/Vue) 페이지 지원을 위해 `` 개선:
+- SPA(React/Vue) 페이지 지원을 위해 개선:
     1. `DOMContentLoaded` → `NETWORKIDLE` → `waitForSelector("body")` 순으로 안정화
     2. `waitForHydration()`으로 React/Vue 렌더링 완료 대기
     3. 실패 시 최대 3회 재시도
@@ -214,15 +213,27 @@ public CompletableFuture<Void> performCheck(Page page, SseEmitter emitter, Inspe
 - **원인**: React/Vue Hydration 완료 전에 검사 시작
 - **해결**: `waitForHydration()` 유틸 추가, 주요 인터랙션 요소 로드 확인 후 검사 시작
 
-### **3. SSE와 WebFlux 호환성**
+### **3. SSE와  인증 및 비동기 요청 인가 문제**
 
-- **원인**: `SseEmitter`는 WebMVC 기반, WebFlux와 혼용 시 스레드 리소스 낭비
-- **해결**: `Flux<ServerSentEvent>`로 전환하거나 WebMVC로 일원화
+- **원인**: SSE 기반의 웹 접근성 검사 API가 비동기적으로 동작하면서, Spring Security의 기본 인가 로직에서 `AccessDeniedException` 발생.
+
+- **해결**: Spring Security 설정파일([WebSecurityConfig](https://github.com/WEBA11Y/WEBA11Y-Server/blob/main/src/main/java/com/weba11y/server/configuration/WebSecurityConfig.java))에서 비동기 요청 시 권한 충돌을 방지 하기 위해 
+  다음과 같이 구성 : 
+
+  ```java
+      dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
+          .requestMatchers("/api/v1/accessibility/**").access(hasRole("USER"));
+  ```
 
 ### **4. DB 성능 저하**
 
-- **원인**: 수천 개 위반 항목을 JPA 단건 저장
-- **해결**: `saveAll()` + Batch 옵션 적용, 또는 `Spring Data JDBC`로 마이그레이션
+- **원인**: 다량의 접근성 검사 위반 항목이 발생했을 때, 단건 save()로 인해 N+1 문제가 발생함.
+- **해결**: `saveAll()` + Batch 옵션 적용
+
+### 5. 무작위 스캐닝 공격 발생
+
+- **원인**: 배포 후 서버 로그를 확인 했을 때, 수천 수만건의 비정상적인 요청이 대량 발생해 서버 자원 손실이 발생
+- **해결**: Cloudflare의 WAF 규칙 설정을 통해 요청 가능한 경로를 설정하여 비정상적인 요청은 Blocking 함.
 
 ---
 
