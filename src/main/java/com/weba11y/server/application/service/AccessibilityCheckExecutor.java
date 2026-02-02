@@ -7,7 +7,6 @@ import com.weba11y.server.checker.engine.StaticContentAccessibilityChecker;
 import com.weba11y.server.domain.inspection.summary.InspectionSummary;
 import com.weba11y.server.domain.enums.InspectionStatus;
 import com.weba11y.server.api.dto.inspectionUrl.InspectionUrlDto;
-import com.weba11y.server.application.service.InspectionPersistenceService;
 import com.weba11y.server.infrastructure.playwright.PageLoaderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,28 +34,35 @@ public class AccessibilityCheckExecutor {
         InspectionSummary summary = inspectionPersistenceService.createAndPrepareInspectionSummary(inspectionUrl.getId());
         final AtomicBoolean isErrorHandled = new AtomicBoolean(false);
 
+        Page page = null;
         try {
-            Page page = pageLoaderService.getLoadedPage(inspectionUrl.getUrl());
+            page = pageLoaderService.getLoadedPage(inspectionUrl.getUrl());
             String content = page.content();
             Document document = Jsoup.parse(content);
 
+            final Page loadedPage = page;
+
             CompletableFuture<Void> staticCheckFuture = staticContentAccessibilityChecker.performCheck(document, emitter, summary);
-            CompletableFuture<Void> dynamicCheckFuture = dynamicContentAccessibilityChecker.performCheck(page, emitter, summary);
+            CompletableFuture<Void> dynamicCheckFuture = dynamicContentAccessibilityChecker.performCheck(loadedPage, emitter, summary);
 
             CompletableFuture.allOf(staticCheckFuture, dynamicCheckFuture)
-                    .thenRun(() -> {
-                        inspectionPersistenceService.updateInspectionStatus(summary.getId(), InspectionStatus.COMPLETED);
-                        sseEventSender.send(emitter, "complete", "All accessibility checks completed.");
-                        emitter.complete();
-                    })
-                    .exceptionally(ex -> {
-                        if (isErrorHandled.compareAndSet(false, true)) {
-                            handleAsyncException(emitter, summary.getId(), ex);
+                    .whenComplete((result, ex) -> {
+                        pageLoaderService.closePage(loadedPage);
+                        if (ex != null) {
+                            if (isErrorHandled.compareAndSet(false, true)) {
+                                handleAsyncException(emitter, summary.getId(), ex);
+                            }
+                        } else {
+                            inspectionPersistenceService.updateInspectionStatus(summary.getId(), InspectionStatus.COMPLETED);
+                            sseEventSender.send(emitter, "complete", "All accessibility checks completed.");
+                            emitter.complete();
                         }
-                        return null;
                     });
 
         } catch (Exception e) {
+            if (page != null) {
+                pageLoaderService.closePage(page);
+            }
             if (isErrorHandled.compareAndSet(false, true)) {
                 handleAsyncException(emitter, summary.getId(), e);
             }

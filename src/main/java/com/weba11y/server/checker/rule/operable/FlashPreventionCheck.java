@@ -29,12 +29,18 @@ public class FlashPreventionCheck extends AbstractAccessibilityChecker implement
         // CSS animation 또는 blink 효과 감지
         List<ElementHandle> elements = page.querySelectorAll("*");
         for (ElementHandle el : elements) {
-            String animation = page.evaluate("el => getComputedStyle(el).animationName", el).toString();
-            String freq = page.evaluate("el => getComputedStyle(el).animationDuration", el).toString();
+            try {
+                String animation = page.evaluate("el => getComputedStyle(el).animationName", el).toString();
+                String freq = page.evaluate("el => getComputedStyle(el).animationDuration", el).toString();
 
-            if (!"none".equals(animation) && isFlashing(freq)) {
-                violations.add(AccessibilityViolationDto.createViolationDto(el, getItem(), summaryId));
-                log.debug("[FlashPreventionCheck] 깜빡임 감지: element={}", el);
+                if (!"none".equals(animation) && isFlashing(freq)) {
+                    violations.add(AccessibilityViolationDto.createViolationDto(el, getItem(), summaryId));
+                    log.debug("[FlashPreventionCheck] 깜빡임 감지: element={}", el);
+                } else {
+                    el.dispose();
+                }
+            } catch (Exception e) {
+                try { el.dispose(); } catch (Exception ignore) {}
             }
         }
         return violations;

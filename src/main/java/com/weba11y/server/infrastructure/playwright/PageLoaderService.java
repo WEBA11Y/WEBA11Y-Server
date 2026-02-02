@@ -5,4 +5,6 @@ import com.microsoft.playwright.Page;
 public interface PageLoaderService {
 
     Page getLoadedPage(String inspectionUrl);
+
+    void closePage(Page page);
 }

@@ -33,13 +33,19 @@ public class TextContrastCheck extends AbstractAccessibilityChecker implements D
 
         List<ElementHandle> elements = page.querySelectorAll("p, span, label");
         for (ElementHandle el : elements) {
-            String fg = page.evaluate("el => getComputedStyle(el).color", el).toString();
-            String bg = page.evaluate("el => getComputedStyle(el).backgroundColor", el).toString();
+            try {
+                String fg = page.evaluate("el => getComputedStyle(el).color", el).toString();
+                String bg = page.evaluate("el => getComputedStyle(el).backgroundColor", el).toString();
 
-            double ratio = ContrastCalculator.calculate(fg, bg);
-            if (!ContrastCalculator.isContrastSufficient(ratio, false)) {
-                violations.add(AccessibilityViolationDto.createViolationDto(el, getItem(), summaryId));
-                log.debug("[TextContrastCheck] 명도 대비 위반: ratio={}, element={}", ratio, el);
+                double ratio = ContrastCalculator.calculate(fg, bg);
+                if (!ContrastCalculator.isContrastSufficient(ratio, false)) {
+                    violations.add(AccessibilityViolationDto.createViolationDto(el, getItem(), summaryId));
+                    log.debug("[TextContrastCheck] 명도 대비 위반: ratio={}, element={}", ratio, el);
+                } else {
+                    el.dispose();
+                }
+            } catch (Exception e) {
+                try { el.dispose(); } catch (Exception ignore) {}
             }
         }
         return violations;
