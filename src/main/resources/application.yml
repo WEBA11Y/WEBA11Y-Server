@@ -7,6 +7,7 @@ spring:
     name: WEBA11Y-Server
   config:
     activate:
+
       on-profile: default
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
@@ -15,13 +16,10 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     defer-datasource-initialization: true
     properties:
       hibernate:
-        jdbc:
-          batch_size: 500
-        order_inserts: true
         format_sql: true
         dialect: org.hibernate.dialect.MariaDBDialect
     show-sql: true
@@ -32,10 +30,10 @@ spring:
       platform: mariadb
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      database: ${REDIS_DB}
       timeout: 6000
-      database: 8
 
 ## Logging
 logging:
