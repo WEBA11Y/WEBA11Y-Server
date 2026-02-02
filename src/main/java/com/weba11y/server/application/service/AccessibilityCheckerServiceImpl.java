@@ -17,7 +17,7 @@ public class AccessibilityCheckerServiceImpl implements AccessibilityCheckerServ
 
     @Override
     public SseEmitter runChecks(InspectionUrlDto inspectionUrl, Long memberId) {
-        SseEmitter emitter = new SseEmitter(60000L); // 1분 타임아웃
+        SseEmitter emitter = new SseEmitter(300000L); // 5분 타임아웃
         emitter.onCompletion(() -> log.info("SSE completed for client."));
         emitter.onTimeout(() -> {
             log.warn("SSE timed out for client.");
