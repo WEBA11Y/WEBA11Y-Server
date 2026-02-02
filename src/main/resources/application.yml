@@ -14,6 +14,10 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    hikari:
+      data-source-properties:
+        rewriteBatchedStatements: true
+        useBulkStmts: true
   jpa:
     hibernate:
       ddl-auto: update
