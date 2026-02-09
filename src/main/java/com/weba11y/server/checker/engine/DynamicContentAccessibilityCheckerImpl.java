@@ -29,40 +29,37 @@ public class DynamicContentAccessibilityCheckerImpl implements DynamicContentAcc
     @Async("taskExecutor")
     public CompletableFuture<Void> performCheck(Page page, SseEmitter emitter, InspectionSummary summary) {
         log.info("[DynamicCheckerImpl] Starting dynamic accessibility checks for inspection: {}", summary.getId());
-        return CompletableFuture.runAsync(() -> {
-            try {
-                List<AccessibilityViolationDto> totalViolations = new java.util.ArrayList<>();
-                for (DynamicChecker checker : dynamicCheckers) {
-                    if (page.isClosed()) {
-                        log.warn("Page was closed, stopping dynamic checks for inspection: {}", summary.getId());
-                        break;
-                    }
-                    try {
-                        List<AccessibilityViolationDto> violations = checker.checkDynamic(page, summary.getId());
-                        violations.forEach(v -> sseEventSender.sendViolationEvent(emitter, v));
-                        totalViolations.addAll(violations);
-                    } catch (Exception e) {
-                        log.error("[DynamicCheckerImpl] Error in checker '{}' for inspection: {}. Skipping checker.",
-                                checker.getClass().getSimpleName(), summary.getId(), e);
-                        sseEventSender.sendErrorEvent(emitter, "Error in checker " + checker.getClass().getSimpleName() + ": " + e.getMessage());
-                    }
+
+        try {
+            List<AccessibilityViolationDto> totalViolations = new java.util.ArrayList<>();
+
+            for (DynamicChecker checker : dynamicCheckers) {
+                if (page.isClosed()) {
+                    log.warn("Page was closed, stopping dynamic checks for inspection: {}", summary.getId());
+                    break;
                 }
-
-                inspectionPersistenceService.updateInspectionSummary(summary, totalViolations);
-
-                log.info("[DynamicCheckerImpl] Finished all dynamic checks for inspection: {}. Total violations: {}",
-                        summary.getId(), totalViolations.size());
-
-            } catch (Exception e) {
-                log.error("[DynamicCheckerImpl] Unrecoverable error during dynamic check process for inspection: {}", summary.getId(), e);
-                throw new java.util.concurrent.CompletionException(e);
+                try {
+                    List<AccessibilityViolationDto> violations = checker.checkDynamic(page, summary.getId());
+                    violations.forEach(v -> sseEventSender.sendViolationEvent(emitter, v));
+                    totalViolations.addAll(violations);
+                } catch (Exception e) {
+                    log.error("[DynamicCheckerImpl] Error in checker '{}' for inspection: {}. Skipping checker.",
+                            checker.getClass().getSimpleName(), summary.getId(), e);
+                    sseEventSender.sendErrorEvent(emitter, "Error in checker " + checker.getClass().getSimpleName() + ": " + e.getMessage());
+                }
             }
-        });
+
+            inspectionPersistenceService.updateInspectionSummary(summary, totalViolations);
+
+            log.info("[DynamicCheckerImpl] Finished all dynamic checks for inspection: {}. Total violations: {}",
+                    summary.getId(), totalViolations.size());
+
+            return CompletableFuture.completedFuture(null);
+
+        } catch (Exception e) {
+            log.error("[DynamicCheckerImpl] Unrecoverable error during dynamic check process for inspection: {}", summary.getId(), e);
+            return CompletableFuture.failedFuture(e);
+        }
     }
 
-    private void handleException(SseEmitter emitter, Throwable ex, Long inspectionId) {
-        log.error("[DynamicCheckerImpl] Error during dynamic accessibility check: {}", inspectionId, ex);
-        sseEventSender.sendErrorEvent(emitter, "Dynamic check failed: " + ex.getMessage());
-        emitter.completeWithError(ex);
-    }
 }
