@@ -29,10 +29,16 @@ public class UserControlCheck extends AbstractAccessibilityChecker implements Dy
         // 자동 슬라이드(캐러셀) 또는 marquee, video autoplay 탐지
         List<ElementHandle> elements = page.querySelectorAll("marquee, video[autoplay], [data-auto-slide]");
         for (ElementHandle el : elements) {
-            boolean hasControls = Boolean.TRUE.equals(page.evaluate("el => el.hasAttribute('controls')", el));
-            if (!hasControls) {
-                violations.add(AccessibilityViolationDto.createViolationDto(el, getItem(), summaryId));
-                log.debug("[UserControlCheck] 자동 변경 콘텐츠 제어 불가: element={}", el);
+            try {
+                boolean hasControls = Boolean.TRUE.equals(page.evaluate("el => el.hasAttribute('controls')", el));
+                if (!hasControls) {
+                    violations.add(AccessibilityViolationDto.createViolationDto(el, getItem(), summaryId));
+                    log.debug("[UserControlCheck] 자동 변경 콘텐츠 제어 불가: element={}", el);
+                } else {
+                    el.dispose();
+                }
+            } catch (Exception e) {
+                try { el.dispose(); } catch (Exception ignore) {}
             }
         }
         return violations;

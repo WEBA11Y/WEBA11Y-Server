@@ -28,12 +28,18 @@ public class OperableControlsCheck extends AbstractAccessibilityChecker implemen
 
         List<ElementHandle> controls = page.querySelectorAll("a, button, input[type=button], input[type=submit]");
         for (ElementHandle el : controls) {
-            int width = Integer.parseInt(page.evaluate("el => el.offsetWidth", el).toString());
-            int height = Integer.parseInt(page.evaluate("el => el.offsetHeight", el).toString());
+            try {
+                int width = Integer.parseInt(page.evaluate("el => el.offsetWidth", el).toString());
+                int height = Integer.parseInt(page.evaluate("el => el.offsetHeight", el).toString());
 
-            if (width < 44 || height < 44) {
-                violations.add(AccessibilityViolationDto.createViolationDto(el, getItem(), summaryId));
-                log.debug("[OperableControlsCheck] 조작 영역 부족: {}x{}, element={}", width, height, el);
+                if (width < 44 || height < 44) {
+                    violations.add(AccessibilityViolationDto.createViolationDto(el, getItem(), summaryId));
+                    log.debug("[OperableControlsCheck] 조작 영역 부족: {}x{}, element={}", width, height, el);
+                } else {
+                    el.dispose();
+                }
+            } catch (Exception e) {
+                try { el.dispose(); } catch (Exception ignore) {}
             }
         }
         return violations;

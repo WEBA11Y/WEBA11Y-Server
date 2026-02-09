@@ -28,10 +28,16 @@ public class PointerInputCancellationCheck extends AbstractAccessibilityChecker 
 
         List<ElementHandle> elements = page.querySelectorAll("button, a, [data-pointer-action]");
         for (ElementHandle el : elements) {
-            boolean supportsCancel = Boolean.TRUE.equals(page.evaluate("el => el.hasAttribute('data-cancelable')", el));
-            if (!supportsCancel) {
-                violations.add(AccessibilityViolationDto.createViolationDto(el, getItem(), summaryId));
-                log.debug("[PointerInputCancellationCheck] 포인터 입력 취소 불가: element={}", el);
+            try {
+                boolean supportsCancel = Boolean.TRUE.equals(page.evaluate("el => el.hasAttribute('data-cancelable')", el));
+                if (!supportsCancel) {
+                    violations.add(AccessibilityViolationDto.createViolationDto(el, getItem(), summaryId));
+                    log.debug("[PointerInputCancellationCheck] 포인터 입력 취소 불가: element={}", el);
+                } else {
+                    el.dispose();
+                }
+            } catch (Exception e) {
+                try { el.dispose(); } catch (Exception ignore) {}
             }
         }
         return violations;

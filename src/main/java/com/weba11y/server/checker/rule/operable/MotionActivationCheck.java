@@ -29,10 +29,16 @@ public class MotionActivationCheck extends AbstractAccessibilityChecker implemen
         // 기기 센서 기반 기능 (예: device-motion 이벤트) 감지
         List<ElementHandle> motionElements = page.querySelectorAll("[data-motion], [data-tilt-control]");
         for (ElementHandle el : motionElements) {
-            boolean hasAltControl = Boolean.TRUE.equals(page.evaluate("el => el.hasAttribute('data-alt-control')", el));
-            if (!hasAltControl) {
-                violations.add(AccessibilityViolationDto.createViolationDto(el, getItem(), summaryId));
-                log.debug("[MotionActivationCheck] 대체 조작 수단 없음: element={}", el);
+            try {
+                boolean hasAltControl = Boolean.TRUE.equals(page.evaluate("el => el.hasAttribute('data-alt-control')", el));
+                if (!hasAltControl) {
+                    violations.add(AccessibilityViolationDto.createViolationDto(el, getItem(), summaryId));
+                    log.debug("[MotionActivationCheck] 대체 조작 수단 없음: element={}", el);
+                } else {
+                    el.dispose();
+                }
+            } catch (Exception e) {
+                try { el.dispose(); } catch (Exception ignore) {}
             }
         }
         return violations;

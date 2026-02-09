@@ -7,7 +7,6 @@ import com.weba11y.server.domain.enums.InspectionItems;
 import com.weba11y.server.api.dto.accessibilityViolation.AccessibilityViolationDto;
 import com.weba11y.server.infrastructure.persistence.AccessibilityViolationRepository;
 import com.weba11y.server.infrastructure.persistence.InspectionSummaryRepository;
-import com.weba11y.server.application.service.AccessibilityViolationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

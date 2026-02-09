@@ -28,14 +28,20 @@ public class FocusIndicationCheck extends AbstractAccessibilityChecker implement
 
         List<ElementHandle> focusable = page.querySelectorAll("a, button, input, [tabindex]");
         for (ElementHandle el : focusable) {
-            page.evaluate("el => el.focus()", el);
-            String outline = page.evaluate("el => getComputedStyle(el).outlineWidth", el).toString();
-            String boxShadow = page.evaluate("el => getComputedStyle(el).boxShadow", el).toString();
+            try {
+                page.evaluate("el => el.focus()", el);
+                String outline = page.evaluate("el => getComputedStyle(el).outlineWidth", el).toString();
+                String boxShadow = page.evaluate("el => getComputedStyle(el).boxShadow", el).toString();
 
-            boolean visible = !"0px".equals(outline) || (boxShadow != null && !boxShadow.isBlank());
-            if (!visible) {
-                violations.add(AccessibilityViolationDto.createViolationDto(el, getItem(), summaryId));
-                log.debug("[FocusIndicationCheck] 초점 표시 없음: element={}", el);
+                boolean visible = !"0px".equals(outline) || (boxShadow != null && !boxShadow.isBlank());
+                if (!visible) {
+                    violations.add(AccessibilityViolationDto.createViolationDto(el, getItem(), summaryId));
+                    log.debug("[FocusIndicationCheck] 초점 표시 없음: element={}", el);
+                } else {
+                    el.dispose();
+                }
+            } catch (Exception e) {
+                try { el.dispose(); } catch (Exception ignore) {}
             }
         }
         return violations;
