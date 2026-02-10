@@ -12,5 +12,5 @@ public interface InspectionPersistenceService {
 
     void updateInspectionStatus(Long summaryId, InspectionStatus status);
 
-    void updateInspectionSummary(InspectionSummary inspectionSummary, List<AccessibilityViolationDto> totalViolations);
+    void updateInspectionSummary(Long summaryId, List<AccessibilityViolationDto> totalViolations);
 }
