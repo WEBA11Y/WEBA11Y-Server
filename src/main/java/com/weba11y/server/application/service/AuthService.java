@@ -19,9 +19,13 @@ public interface AuthService {
 
     String deleteMember(Long memberId);
 
-    String reissuingAccessToken(String refreshToken);
+    MemberDto deactivateMember(Long memberId);
+
+    MemberDto activateMember(Long memberId);
+
+    String reissuingAccessToken(String refreshToken, HttpServletResponse response);
 
     TokenInfo getTokenInfo(String token);
 
-    boolean tokenIsExpired(String token);
+    boolean isTokenValid(String token);
 }
