@@ -22,7 +22,7 @@ public interface InspectionUrlService {
 
     InspectionUrlDto retrieveUrl(Long urlId, Long memberId);
 
-    InspectionUrlDto updateUrl(InspectionUrlDto.Request requestDto, Long urlId);
+    InspectionUrlDto updateUrl(InspectionUrlDto.Request requestDto, Long urlId, Long memberId);
 
     HttpStatus deleteUrl(List<Long> urlId, Long memberId);
 }
