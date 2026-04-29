@@ -111,7 +111,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public MemberDto updateMember(Long memberId, UpdateMemberDto updateMemberDto) {
         Member member = retrieveMember(memberId);
-        if (isExistsPhoneNum(updateMemberDto.getPhoneNum())) {
+        if (repository.existsByPhoneNumAndIdNot(updateMemberDto.getPhoneNum(), memberId)) {
             throw new DuplicateFieldException("이미 사용 중인 전화번호입니다.");
         }
         member.update(updateMemberDto.getPhoneNum());

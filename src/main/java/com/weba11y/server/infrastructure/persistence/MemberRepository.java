@@ -10,4 +10,6 @@ public interface MemberRepository extends JpaRepository<Member, Long>, MemberCus
     boolean existsByUserId(String username);
 
     boolean existsByPhoneNum(String phoneNum);
+
+    boolean existsByPhoneNumAndIdNot(String phoneNum, Long id);
 }
