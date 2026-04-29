@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import static com.weba11y.server.infrastructure.security.CookieName.REFRESH_TOKEN_COOKIE;
 
-import java.nio.file.AccessDeniedException;
 import java.security.SignatureException;
 import java.util.HashMap;
 import java.util.Map;
