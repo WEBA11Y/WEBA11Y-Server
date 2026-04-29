@@ -79,7 +79,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (!isPasswordMatching(loginDto, findMember)) {
             loginAttemptService.loginFailed(userId);
-            throw new BadCredentialsException("비밀번호가 일치하지 않습니다");
+            throw new BadCredentialsException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
 
         if (findMember.getStatus() == MemberStatus.DEACTIVATED) {
@@ -150,7 +150,7 @@ public class AuthServiceImpl implements AuthService {
     private Member getMemberByUserId(String userId) {
         return repository.findByUserId(userId)
                 .orElseThrow(()
-                        -> new NoSuchElementException("존재하지 않는 회원입니다"));
+                        -> new BadCredentialsException("아이디 또는 비밀번호가 일치하지 않습니다."));
     }
 
     private void validateUniqueMemberInfo(JoinDto joinDto) {
