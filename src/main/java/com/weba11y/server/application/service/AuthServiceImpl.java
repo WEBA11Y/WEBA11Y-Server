@@ -120,14 +120,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public String deleteMember(Long memberId) {
+    public void deleteMember(Long memberId) {
         Member member = retrieveMember(memberId);
-        try {
-            member.delete();
-            return "회원 탈퇴 성공";
-        } catch (Exception e) {
-            return "회원 탈퇴 실패";
-        }
+        member.delete();
     }
 
     @Override

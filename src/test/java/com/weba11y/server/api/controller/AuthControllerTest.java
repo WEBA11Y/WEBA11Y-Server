@@ -1,6 +1,7 @@
 package com.weba11y.server.api.controller;
 
 import com.weba11y.server.domain.member.Member;
+import com.weba11y.server.domain.enums.MemberStatus;
 import com.weba11y.server.api.dto.member.JoinDto;
 import com.weba11y.server.api.dto.member.LoginDto;
 import com.weba11y.server.api.dto.member.UpdateMemberDto;
@@ -16,6 +17,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDate;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -185,7 +187,11 @@ public class AuthControllerTest extends BaseIntegrationTest {
                 .header("Authorization", "Bearer " + accessToken)
         );
         // then
-        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+
+        Member deletedMember = repository.findById(member.getId()).orElseThrow();
+        assertEquals(MemberStatus.DEACTIVATED, deletedMember.getStatus());
     }
 
     @Test

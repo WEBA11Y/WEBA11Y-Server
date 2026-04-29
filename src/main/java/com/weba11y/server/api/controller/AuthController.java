@@ -56,8 +56,9 @@ public class AuthController {
 
     @DeleteMapping("/api/v1/member")
     @Operation(summary = "회원 탈퇴", description = "회원을 비활성화 하고 30일 이후에 영구적으로 삭제합니다.")
-    public ResponseEntity<?> deleteMember(@CurrentMemberId Long memberId) {
-        return ResponseEntity.ok().body(authService.deleteMember(memberId));
+    public ResponseEntity<Void> deleteMember(@CurrentMemberId Long memberId) {
+        authService.deleteMember(memberId);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/api/v1/member/deactivate")

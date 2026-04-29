@@ -17,7 +17,7 @@ public interface AuthService {
 
     MemberDto updateMember(Long memberId, UpdateMemberDto updateMemberDto);
 
-    String deleteMember(Long memberId);
+    void deleteMember(Long memberId);
 
     MemberDto deactivateMember(Long memberId);
 
