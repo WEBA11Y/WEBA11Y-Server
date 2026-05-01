@@ -15,10 +15,13 @@ public class JoinDto {
 
     @NotBlank
     @Size(min = 4, max = 10, message = "아이디는 4-10자리 영문, 숫자 조합으로 입력해주세요.")
+    @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "아이디는 영문, 숫자만 사용할 수 있습니다.")
     private String userId;
 
     @NotBlank
     @Size(min = 8, max = 15, message = "비밀번호는 8-15자리 대소문자 영문, 숫자, 특수기호 조합으로 입력해주세요.")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).+$",
+            message = "비밀번호는 대문자, 소문자, 숫자, 특수기호를 각각 1개 이상 포함해야 합니다.")
     private String password;
 
     @NotBlank

@@ -47,8 +47,9 @@ public class InspectionUrlController {
     @PutMapping("/api/v1/urls/{id}")
     @Operation(summary = "등록된 URL 정보 수정", description = "URL의 정보를 수정합니다.")
     public ResponseEntity<InspectionUrlDto.Response> updateUrl(@PathVariable("id") Long urlId,
-                                                               @RequestBody @Valid InspectionUrlDto.Request requestDto) {
-        return ResponseEntity.ok().body(inspectionUrlService.updateUrl(requestDto, urlId).toResponse());
+                                                               @RequestBody @Valid InspectionUrlDto.Request requestDto,
+                                                               @CurrentMemberId Long memberId) {
+        return ResponseEntity.ok().body(inspectionUrlService.updateUrl(requestDto, urlId, memberId).toResponse());
     }
 
     // URL 삭제

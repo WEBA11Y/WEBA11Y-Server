@@ -57,13 +57,16 @@ public class InspectionPersistenceServiceImpl implements InspectionPersistenceSe
 
     @Override
     @Transactional
-    public void updateInspectionSummary(InspectionSummary inspectionSummary, List<AccessibilityViolationDto> totalViolations) {
+    public void updateInspectionSummary(Long summaryId, List<AccessibilityViolationDto> totalViolations) {
+        InspectionSummary summary = summaryRepository.findById(summaryId).orElseThrow(
+                () -> new NoSuchElementException("InspectionSummary Not Found: " + summaryId)
+        );
         List<AccessibilityViolation> violations = totalViolations.stream()
-                .map(dto -> dto.toEntity(inspectionSummary))
+                .map(dto -> dto.toEntity(summary))
                 .collect(Collectors.toList());
         accessibilityViolationRepository.saveAll(violations);
 
-        inspectionSummary.recalculateViolations();
-        summaryRepository.save(inspectionSummary);
+        summary.recalculateViolations();
+        summaryRepository.save(summary);
     }
 }

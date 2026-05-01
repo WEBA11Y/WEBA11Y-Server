@@ -1,6 +1,7 @@
 package com.weba11y.server.api.controller;
 
 import com.weba11y.server.domain.member.Member;
+import com.weba11y.server.domain.enums.MemberStatus;
 import com.weba11y.server.api.dto.member.JoinDto;
 import com.weba11y.server.api.dto.member.LoginDto;
 import com.weba11y.server.api.dto.member.UpdateMemberDto;
@@ -16,6 +17,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDate;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -62,7 +64,7 @@ public class AuthControllerTest extends BaseIntegrationTest {
         // given
         JoinDto joinDto = JoinDto.builder()
                 .userId("test1234")
-                .password("test1234")
+                .password("Test1234!")
                 .name("Test")
                 .phoneNum("01011112222")
                 .birthday(LocalDate.parse("1996-08-19"))
@@ -131,6 +133,51 @@ public class AuthControllerTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("회원 정보 수정 - 기존 본인 전화번호는 허용")
+    void updateMemberWithOwnPhoneNum() throws Exception {
+        // given
+        UpdateMemberDto memberDto = UpdateMemberDto.builder()
+                .phoneNum(member.getPhoneNum())
+                .build();
+
+        // when
+        ResultActions resultActions = mockMvc.perform(put("/api/v1/member")
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(memberDto)));
+
+        // then
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.phoneNum").value(memberDto.getPhoneNum()));
+    }
+
+    @Test
+    @DisplayName("회원 정보 수정 - 다른 회원 전화번호는 거부")
+    void updateMemberWithOtherMemberPhoneNum() throws Exception {
+        // given
+        Member otherMember = repository.save(Member.builder()
+                .userId("test2222")
+                .password(passwordEncoder.encode(TEST_PW))
+                .name("Test222")
+                .birthday(LocalDate.parse("1996-08-19"))
+                .phoneNum("010-2222-2222")
+                .build());
+
+        UpdateMemberDto memberDto = UpdateMemberDto.builder()
+                .phoneNum(otherMember.getPhoneNum())
+                .build();
+
+        // when
+        ResultActions resultActions = mockMvc.perform(put("/api/v1/member")
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(memberDto)));
+
+        // then
+        resultActions.andExpect(status().isConflict());
+    }
+
+    @Test
     @DisplayName("회원 탈퇴")
     void deleteMember() throws Exception {
         // given
@@ -140,7 +187,11 @@ public class AuthControllerTest extends BaseIntegrationTest {
                 .header("Authorization", "Bearer " + accessToken)
         );
         // then
-        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+
+        Member deletedMember = repository.findById(member.getId()).orElseThrow();
+        assertEquals(MemberStatus.DEACTIVATED, deletedMember.getStatus());
     }
 
     @Test

@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import static com.weba11y.server.infrastructure.security.CookieName.REFRESH_TOKEN_COOKIE;
 import static com.weba11y.server.infrastructure.security.CookieUtil.*;
 
 
@@ -26,8 +27,6 @@ import static com.weba11y.server.infrastructure.security.CookieUtil.*;
 public class AuthController {
 
     private final AuthService authService;
-
-    private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
 
     @PostMapping("/api/v1/login")
     @Operation(summary = "로그인", description = "로그인 성공시 인증 토큰을 발급합니다.")
@@ -57,8 +56,21 @@ public class AuthController {
 
     @DeleteMapping("/api/v1/member")
     @Operation(summary = "회원 탈퇴", description = "회원을 비활성화 하고 30일 이후에 영구적으로 삭제합니다.")
-    public ResponseEntity<?> deleteMember(@CurrentMemberId Long memberId) {
-        return ResponseEntity.ok().body(authService.deleteMember(memberId));
+    public ResponseEntity<Void> deleteMember(@CurrentMemberId Long memberId) {
+        authService.deleteMember(memberId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/api/v1/member/deactivate")
+    @Operation(summary = "회원 비활성화", description = "회원 계정을 비활성화합니다.")
+    public ResponseEntity<MemberDto> deactivateMember(@CurrentMemberId Long memberId) {
+        return ResponseEntity.ok().body(authService.deactivateMember(memberId));
+    }
+
+    @PatchMapping("/api/v1/member/activate")
+    @Operation(summary = "회원 활성화", description = "비활성화된 회원 계정을 다시 활성화합니다.")
+    public ResponseEntity<MemberDto> activateMember(@CurrentMemberId Long memberId) {
+        return ResponseEntity.ok().body(authService.activateMember(memberId));
     }
 
 
@@ -79,12 +91,12 @@ public class AuthController {
     }
 
     @GetMapping("/api/v1/reissuing-token")
-    @Operation(summary = "Access Token 재발급", description = "Cookie에 저장된 Refresh Token으로 Access Token을 재발급 받습니다.")
-    public ResponseEntity<String> reissuingAccessToken(HttpServletRequest request) {
+    @Operation(summary = "Access Token 재발급", description = "Cookie에 저장된 Refresh Token으로 Access Token을 재발급 받습니다. Refresh Token도 함께 갱신됩니다.")
+    public ResponseEntity<String> reissuingAccessToken(HttpServletRequest request, HttpServletResponse response) {
         Cookie refreshTokenCookie = findCookie(request, REFRESH_TOKEN_COOKIE);
         if (refreshTokenCookie == null || refreshTokenCookie.getValue().equals(""))
             throw new InvalidateTokenException("토큰이 존재하지 않습니다.");
-        return ResponseEntity.ok().body(authService.reissuingAccessToken(refreshTokenCookie.getValue()));
+        return ResponseEntity.ok().body(authService.reissuingAccessToken(refreshTokenCookie.getValue(), response));
     }
 
     // 로그아웃

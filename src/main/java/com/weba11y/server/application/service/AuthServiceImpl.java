@@ -3,11 +3,13 @@ package com.weba11y.server.application.service;
 import com.weba11y.server.domain.member.Member;
 import com.weba11y.server.domain.member.Token;
 import com.weba11y.server.api.dto.member.*;
+import com.weba11y.server.domain.enums.MemberStatus;
+import com.weba11y.server.global.exception.custom.AccountLockedException;
+import com.weba11y.server.global.exception.custom.DeactivatedMemberException;
 import com.weba11y.server.global.exception.custom.DuplicateFieldException;
 import com.weba11y.server.global.exception.custom.ExpiredRefreshTokenException;
 import com.weba11y.server.global.exception.custom.ExpiredTokenException;
 import com.weba11y.server.infrastructure.persistence.MemberRepository;
-import com.weba11y.server.application.service.AuthService;
 import com.weba11y.server.infrastructure.security.CookieUtil;
 import com.weba11y.server.infrastructure.security.JwtUtil;
 import jakarta.servlet.http.Cookie;
@@ -26,12 +28,14 @@ import static com.weba11y.server.infrastructure.security.CookieName.REFRESH_TOKE
 
 @Slf4j
 @Service
-@Transactional(value = "transactionManager", readOnly = true)
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
     private final MemberRepository repository;
 
     private final PasswordEncoder passwordEncoder;
+
+    private final LoginAttemptService loginAttemptService;
 
     @Value("${jwt.secret}")
     private String secret;
@@ -43,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
     private Long refreshTokenExpiration;
 
     @Override
-    @Transactional(value = "transactionManager")
+    @Transactional
     public JoinResultDto join(JoinDto joinDto) {
         // Unique 값 검사
         validateUniqueMemberInfo(joinDto);
@@ -58,15 +62,32 @@ public class AuthServiceImpl implements AuthService {
                     .userId(saveMember.getUserId())
                     .build();
         } catch (Exception e) {
-            throw new RuntimeException("회원가입 중 오류발생 {}");
+            throw new RuntimeException("회원가입 중 오류발생: " + e.getMessage(), e);
         }
     }
 
     @Override
     public LoginResultDto login(LoginDto loginDto, HttpServletResponse response) {
-        Member findMember = getMemberByUserId(loginDto.getUserId());
-        if (!isPasswordMatching(loginDto, findMember))
-            throw new BadCredentialsException("비밀번호가 일치하지 않습니다");
+        String userId = loginDto.getUserId();
+
+        // 브루트포스 방어: 로그인 시도 횟수 초과 시 차단
+        if (loginAttemptService.isBlocked(userId)) {
+            throw new AccountLockedException("로그인 시도 횟수를 초과했습니다. 30분 후에 다시 시도해주세요.");
+        }
+
+        Member findMember = getMemberByUserId(userId);
+
+        if (!isPasswordMatching(loginDto, findMember)) {
+            loginAttemptService.loginFailed(userId);
+            throw new BadCredentialsException("아이디 또는 비밀번호가 일치하지 않습니다.");
+        }
+
+        if (findMember.getStatus() == MemberStatus.DEACTIVATED) {
+            throw new DeactivatedMemberException("비활성화된 계정입니다. 관리자에게 문의하세요.");
+        }
+
+        // 로그인 성공 시 실패 횟수 초기화
+        loginAttemptService.loginSucceeded(userId);
 
         Token token = createAuthenticationToken(findMember);
         Cookie refreshTokenCookie = CookieUtil.addCookie(REFRESH_TOKEN_COOKIE, token.getRefresh_token());
@@ -87,10 +108,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional(value = "transactionManager")
+    @Transactional
     public MemberDto updateMember(Long memberId, UpdateMemberDto updateMemberDto) {
         Member member = retrieveMember(memberId);
-        if (isExistsPhoneNum(updateMemberDto.getPhoneNum())) {
+        if (repository.existsByPhoneNumAndIdNot(updateMemberDto.getPhoneNum(), memberId)) {
             throw new DuplicateFieldException("이미 사용 중인 전화번호입니다.");
         }
         member.update(updateMemberDto.getPhoneNum());
@@ -98,22 +119,33 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional(value = "transactionManager")
-    public String deleteMember(Long memberId) {
+    @Transactional
+    public void deleteMember(Long memberId) {
         Member member = retrieveMember(memberId);
-        try {
-            member.delete();
-            return "회원 탈퇴 성공";
-        } catch (Exception e) {
-            return "회원 탈퇴 실패";
-        }
+        member.delete();
+    }
+
+    @Override
+    @Transactional
+    public MemberDto deactivateMember(Long memberId) {
+        Member member = retrieveMember(memberId);
+        member.deactivate();
+        return MemberDto.of(member);
+    }
+
+    @Override
+    @Transactional
+    public MemberDto activateMember(Long memberId) {
+        Member member = retrieveMember(memberId);
+        member.activate();
+        return MemberDto.of(member);
     }
 
 
     private Member getMemberByUserId(String userId) {
         return repository.findByUserId(userId)
                 .orElseThrow(()
-                        -> new NoSuchElementException("존재하지 않는 회원입니다"));
+                        -> new BadCredentialsException("아이디 또는 비밀번호가 일치하지 않습니다."));
     }
 
     private void validateUniqueMemberInfo(JoinDto joinDto) {
@@ -133,7 +165,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String reissuingAccessToken(String refreshToken) {
+    public String reissuingAccessToken(String refreshToken, HttpServletResponse response) {
         // Refresh Token 검증.
         try {
             JwtUtil.validateToken(refreshToken, secret);
@@ -141,20 +173,30 @@ public class AuthServiceImpl implements AuthService {
             // RefreshToken 만료시 Data 삭제.
             throw new ExpiredRefreshTokenException("토큰이 만료되었습니다.");
         }
+
+        TokenInfo tokenInfo = getTokenInfo(refreshToken);
+
+        // Refresh Token Rotation: 새로운 Refresh Token 발급
+        String newRefreshToken = JwtUtil.reissuingToken(tokenInfo, refreshTokenExpiration, secret);
+        Cookie newRefreshTokenCookie = CookieUtil.addCookie(REFRESH_TOKEN_COOKIE, newRefreshToken);
+        response.addCookie(newRefreshTokenCookie);
+
         // Access Token 재발급
-        return JwtUtil.reissuingToken(getTokenInfo(refreshToken), accessTokenExpiration, secret);
+        return JwtUtil.reissuingToken(tokenInfo, accessTokenExpiration, secret);
     }
 
     @Override
     public TokenInfo getTokenInfo(String token) {
-        tokenIsExpired(token);
+        if (!isTokenValid(token)) {
+            throw new ExpiredTokenException("토큰이 만료되었습니다.");
+        }
         return JwtUtil.getTokenInfo(token, secret);
     }
 
     @Override
-    public boolean tokenIsExpired(String token) {
+    public boolean isTokenValid(String token) {
         try {
-            JwtUtil.validateToken(token, secret); // 토큰 검증
+            JwtUtil.validateToken(token, secret);
             return true;
         } catch (ExpiredTokenException e) {
             return false;

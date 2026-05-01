@@ -63,6 +63,11 @@ public class Member extends BaseEntity {
         this.status = MemberStatus.DEACTIVATED;
     }
 
+    // 회원 활성화
+    public void activate() {
+        this.status = MemberStatus.ACTIVE;
+    }
+
     // 회원 비활성화 및 탈퇴
     public void delete() {
         this.status = MemberStatus.DEACTIVATED;

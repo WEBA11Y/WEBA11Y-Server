@@ -125,8 +125,8 @@ public class InspectionUrlServiceImpl implements InspectionUrlService {
 
     @Transactional
     @Override
-    public InspectionUrlDto updateUrl(InspectionUrlDto.Request requestDto, Long urlId) {
-        InspectionUrl url = retrieveUrlById(urlId);
+    public InspectionUrlDto updateUrl(InspectionUrlDto.Request requestDto, Long urlId, Long memberId) {
+        InspectionUrl url = retrieveUrlByIdAndMemberId(urlId, memberId);
         url.update(requestDto);
         return url.toDto();
     }

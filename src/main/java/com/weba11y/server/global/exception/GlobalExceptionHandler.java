@@ -9,12 +9,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.nio.file.AccessDeniedException;
+import static com.weba11y.server.infrastructure.security.CookieName.REFRESH_TOKEN_COOKIE;
+
 import java.security.SignatureException;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,6 +56,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.LOCKED).body(e.getMessage());
     }
 
+    // 비활성화된 회원
+    @ExceptionHandler(DeactivatedMemberException.class)
+    public ResponseEntity<?> handleDeactivatedMemberException(DeactivatedMemberException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+    }
+
     // Token 예외 처리
     @ExceptionHandler({AccessDeniedException.class, SignatureException.class, ExpiredTokenException.class, ExpiredJwtException.class})
     public ResponseEntity<?> handleUnauthorizedAccessException(Exception e) {
@@ -63,8 +71,10 @@ public class GlobalExceptionHandler {
     // RefreshToken 만료
     @ExceptionHandler(ExpiredRefreshTokenException.class)
     public ResponseEntity<?> handleExpiredRefreshTokenException(HttpServletRequest request, HttpServletResponse response, ExpiredRefreshTokenException e) {
-        Cookie refreshTokenCookie = CookieUtil.findCookie(request, "refresh_token_key");
-        CookieUtil.deleteCookie(response, refreshTokenCookie);
+        Cookie refreshTokenCookie = CookieUtil.findCookie(request, REFRESH_TOKEN_COOKIE);
+        if (refreshTokenCookie != null) {
+            CookieUtil.deleteCookie(response, refreshTokenCookie);
+        }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
     }
 

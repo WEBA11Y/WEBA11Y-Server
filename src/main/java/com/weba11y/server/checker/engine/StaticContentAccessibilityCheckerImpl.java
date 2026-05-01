@@ -1,11 +1,7 @@
 package com.weba11y.server.checker.engine;
 
-import com.weba11y.server.checker.engine.AccessibilityChecker;
 import com.weba11y.server.infrastructure.sse.SseEventSender;
-import com.weba11y.server.checker.engine.StaticContentAccessibilityChecker;
-import com.weba11y.server.domain.inspection.summary.InspectionSummary;
 import com.weba11y.server.api.dto.accessibilityViolation.AccessibilityViolationDto;
-import com.weba11y.server.application.service.InspectionPersistenceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
@@ -24,35 +20,33 @@ public class StaticContentAccessibilityCheckerImpl implements StaticContentAcces
 
     private final List<AccessibilityChecker> checkers;
     private final SseEventSender sseEventSender;
-    private final InspectionPersistenceService inspectionPersistenceService;
 
     @Override
     @Async("taskExecutor")
-    public CompletableFuture<Void> performCheck(Document document, SseEmitter emitter, InspectionSummary inspectionSummary) {
-        log.info("[StaticCheckerImpl] Starting static content accessibility check for inspection: {}", inspectionSummary.getId());
+    public CompletableFuture<List<AccessibilityViolationDto>> performCheck(Document document, SseEmitter emitter, Long summaryId) {
+        log.info("[StaticCheckerImpl] Starting static content accessibility check for inspection: {}", summaryId);
 
         try {
             List<CompletableFuture<List<AccessibilityViolationDto>>> futures = checkers.stream()
                     .map(checker -> CompletableFuture.supplyAsync(() -> {
-                        List<AccessibilityViolationDto> violations = checker.check(document, inspectionSummary.getId());
+                        List<AccessibilityViolationDto> violations = checker.check(document, summaryId);
                         violations.forEach(violation -> sseEventSender.sendViolationEvent(emitter, violation));
                         return violations;
                     }))
                     .collect(Collectors.toList());
 
             return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                    .thenAccept(v -> {
+                    .thenApply(v -> {
                         List<AccessibilityViolationDto> totalViolations = futures.stream()
                                 .flatMap(future -> future.join().stream())
                                 .collect(Collectors.toList());
 
-                        inspectionPersistenceService.updateInspectionSummary(inspectionSummary, totalViolations);
-
-                        log.info("[StaticCheckerImpl] Finished all checks for inspection: {}. Total violations: {}", inspectionSummary.getId(), totalViolations.size());
+                        log.info("[StaticCheckerImpl] Finished all checks for inspection: {}. Total violations: {}", summaryId, totalViolations.size());
+                        return totalViolations;
                     });
 
         } catch (Exception e) {
-            handleException(emitter, e, inspectionSummary.getId());
+            handleException(emitter, e, summaryId);
             return CompletableFuture.failedFuture(e);
         }
     }

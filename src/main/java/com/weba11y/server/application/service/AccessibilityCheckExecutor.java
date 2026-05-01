@@ -6,6 +6,7 @@ import com.weba11y.server.infrastructure.sse.SseEventSender;
 import com.weba11y.server.checker.engine.StaticContentAccessibilityChecker;
 import com.weba11y.server.domain.inspection.summary.InspectionSummary;
 import com.weba11y.server.domain.enums.InspectionStatus;
+import com.weba11y.server.api.dto.accessibilityViolation.AccessibilityViolationDto;
 import com.weba11y.server.api.dto.inspectionUrl.InspectionUrlDto;
 import com.weba11y.server.infrastructure.playwright.PageLoaderService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -42,17 +45,25 @@ public class AccessibilityCheckExecutor {
 
             final Page loadedPage = page;
 
-            CompletableFuture<Void> staticCheckFuture = staticContentAccessibilityChecker.performCheck(document, emitter, summary);
-            CompletableFuture<Void> dynamicCheckFuture = dynamicContentAccessibilityChecker.performCheck(loadedPage, emitter, summary);
+            CompletableFuture<List<AccessibilityViolationDto>> staticCheckFuture =
+                    staticContentAccessibilityChecker.performCheck(document, emitter, summary.getId());
+            CompletableFuture<List<AccessibilityViolationDto>> dynamicCheckFuture =
+                    dynamicContentAccessibilityChecker.performCheck(loadedPage, emitter, summary.getId());
 
-            CompletableFuture.allOf(staticCheckFuture, dynamicCheckFuture)
-                    .whenComplete((result, ex) -> {
+            staticCheckFuture.thenCombine(dynamicCheckFuture, (staticViolations, dynamicViolations) -> {
+                        List<AccessibilityViolationDto> allViolations = new ArrayList<>(staticViolations.size() + dynamicViolations.size());
+                        allViolations.addAll(staticViolations);
+                        allViolations.addAll(dynamicViolations);
+                        return allViolations;
+                    })
+                    .whenComplete((allViolations, ex) -> {
                         pageLoaderService.closePage(loadedPage);
                         if (ex != null) {
                             if (isErrorHandled.compareAndSet(false, true)) {
                                 handleAsyncException(emitter, summary.getId(), ex);
                             }
                         } else {
+                            inspectionPersistenceService.updateInspectionSummary(summary.getId(), allViolations);
                             inspectionPersistenceService.updateInspectionStatus(summary.getId(), InspectionStatus.COMPLETED);
                             sseEventSender.send(emitter, "complete", "All accessibility checks completed.");
                             emitter.complete();
